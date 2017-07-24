@@ -1,0 +1,6 @@
+### CMake stuff
+cmake-*/
+
+### CLion stuff
+.idea/
+/pypredef

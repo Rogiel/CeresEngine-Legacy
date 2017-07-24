@@ -1,0 +1,6 @@
+[submodule "Vendor/stb"]
+	path = Vendor/stb
+	url = https://github.com/nothings/stb.git
+[submodule "Vendor/tinyobjloader"]
+	path = Vendor/tinyobjloader
+	url = https://github.com/syoyo/tinyobjloader.git
