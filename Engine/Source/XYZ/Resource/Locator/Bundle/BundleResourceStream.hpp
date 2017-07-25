@@ -40,14 +40,27 @@ namespace XYZ::Resource::Locator::Bundle {
 		 *
 		 * @return the number of bytes effectively read
 		 */
-		virtual std::streamsize read(uint8_t* bytes, std::streamsize len) override;
+		std::streamsize read(uint8_t* bytes, std::streamsize len) final;
+
+		/**
+		 * Seeks the stream to the position <tt>position</tt>.
+		 *
+		 * @param seek the position to seek to or with
+		 * @param type the seeking type
+		 */
+		void seek(std::streamsize seek, ResourceStreamSeekType type = ResourceStreamSeekType::SET) final;
+
+		/**
+		 * @return the current stream position
+		 */
+		std::streamsize tell() final;
 
 		/**
 		 * Checks if a stream has any remaining data
 		 *
 		 * @return true if read() will return at least 1 byte
 		 */
-		virtual bool hasData() override;
+		bool hasData() final;
 	};
 
 }

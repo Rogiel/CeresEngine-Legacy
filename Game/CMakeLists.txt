@@ -8,15 +8,24 @@ target_include_directories(Game
 
 target_link_libraries(Game
         PUBLIC XYZ.Engine
+        
         PRIVATE XYZ.Resource.Locator.Bundle
+        
         PRIVATE XYZ.Graphics.Renderer.OpenGL
         PRIVATE XYZ.Graphics.Mesh.Obj
         PRIVATE XYZ.Graphics.Texture.Stbi
         PRIVATE XYZ.Graphics.Window.GLFW
+        
+        PRIVATE XYZ.Audio.OpenAL
+        PRIVATE XYZ.Audio.Loader.OggVorbis
+        
         PRIVATE XYZ.Input.Keyboard.GLFW
         PRIVATE XYZ.Input.Mouse.GLFW
+        
         PRIVATE XYZ.Scene.Manager.Octree
+        
         PRIVATE "-framework CoreFoundation"
+        PRIVATE "-framework AudioToolbox"
 )
 
 set_target_properties(Game PROPERTIES

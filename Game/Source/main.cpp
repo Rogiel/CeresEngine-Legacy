@@ -19,6 +19,9 @@
 #include <XYZ/Graphics/Texture/Stbi/StbiTextureImageLoader.hpp>
 
 #include <XYZ/Graphics/Renderer/OpenGL/OpenGLDeferredRendering.hpp>
+#include <XYZ/Audio/OpenAL/OpenALAudioSystem.hpp>
+
+#include <XYZ/Audio/Loader/OggVorbis/OggVorbisClipLoader.hpp>
 
 using namespace XYZ;
 
@@ -91,6 +94,7 @@ public:
 
 #include <XYZ/Scene/Manager/Simple/SimpleSceneManager.hpp>
 #include <XYZ/Graphics/Window/GLFW/GLFWWindow.hpp>
+#include <XYZ/Audio/OpenAL/OpenALAudioBuffer.hpp>
 
 //int main() {
 //	using namespace XYZ::Scene::Manager::Simple;
@@ -140,9 +144,14 @@ loadObject(const std::string& name, Engine& engine, const std::shared_ptr<Scene:
 	return object;
 }
 
+Audio::AudioBuffer* stepsBuffer;
+std::shared_ptr<Audio::AudioSource> stepsSource;
+
 int main() {
 	Graphics::Window::GLFW::GLFWWindow window(1024, 768, "Game");
 	window.activate();
+
+	Audio::OpenAL::OpenALAudioSystem audioSystem;
 
 	Engine engine(
 			std::make_shared<Resource::Locator::Bundle::BundleResourceLocator>()
@@ -194,7 +203,7 @@ int main() {
 		pointLight1->setConstant(1.0f);
 		pointLight1->setLinear(0.09f);
 		pointLight1->setQuadratic(0.032f);
-		scene.addLight(pointLight1);
+//		scene.addLight(pointLight1);
 
 		auto pointLight2 = std::make_shared<Scene::Light::PointLight>();
 		pointLight2->setPosition(vec3(segment->position.x, 1.88f, -1.88f));
@@ -203,7 +212,7 @@ int main() {
 		pointLight2->setConstant(pointLight1->getConstant());
 		pointLight2->setLinear(pointLight1->getLinear());
 		pointLight2->setQuadratic(pointLight1->getQuadratic());
-		scene.addLight(pointLight2);
+//		scene.addLight(pointLight2);
 	}
 
 	camera = std::make_shared<Scene::Camera>();
@@ -225,13 +234,37 @@ int main() {
 
 	scene.addLight(spotLight);
 
-	glfwSwapInterval(1);
+	// create a dummy audio source
+	Audio::Loader::OggVorbis::OggVorbisClipLoader clipLoader;
+
+	auto audioBuffer = audioSystem.createAudioBuffer(*clipLoader.load(
+			engine.getResourceLocator().locate("Audio/Train.ogg")
+	));
+
+	auto source = audioSystem.createSource();
+	source->play(*audioBuffer);
+
+	auto stepsAudioBuffer = audioSystem.createAudioBuffer(*clipLoader.load(
+			engine.getResourceLocator().locate("Audio/Steps.ogg")
+	));
+
+	audioSystem.getListener().setPosition(camera->getPosition());
+	audioSystem.getListener().setDirection(camera->getFront());
+
+	stepsBuffer = stepsAudioBuffer.get();
+	stepsSource = audioSystem.createSource();
 
 	while(true) {
 		auto start = glfwGetTime();
 
 		spotLight->setPosition(camera->getPosition());
 		spotLight->setDirection(camera->getFront());
+
+		stepsSource->setPosition(camera->getPosition());
+		stepsSource->setDirection(camera->getFront());
+
+		audioSystem.getListener().setPosition(camera->getPosition());
+		audioSystem.getListener().setDirection(camera->getFront());
 
 		processInput(glfwGetCurrentContext());
 		rendering.render(scene);
@@ -249,12 +282,14 @@ int main() {
 		float elapsed = float(end - start);
 		deltaTime = elapsed;
 
-		auto fps = int(1.0 / elapsed);
-//		window.setTitle("Game - " + std::to_string(fps) + " FPS / " + std::to_string(elapsed) + " seconds per frame");
-		std::cout << fps << std::endl;
+//		auto fps = int(1.0 / elapsed);
+////		window.setTitle("Game - " + std::to_string(fps) + " FPS / " + std::to_string(elapsed) + " seconds per frame");
+//		std::cout << fps << std::endl;
 	}
 
 }
+
+static bool walking = false;
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -262,13 +297,33 @@ void processInput(GLFWwindow* window) {
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	bool wasWalking = walking;
+
+	walking = false;
+	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		camera->ProcessKeyboard(Scene::Camera::FORWARD, deltaTime);
-	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		walking = true;
+	}
+	if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		camera->ProcessKeyboard(Scene::Camera::BACKWARD, deltaTime);
-	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		walking = true;
+	}
+	if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		camera->ProcessKeyboard(Scene::Camera::LEFT, deltaTime);
-	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		walking = true;
+	}
+	if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		camera->ProcessKeyboard(Scene::Camera::RIGHT, deltaTime);
+		walking = true;
+	}
+
+	if(stepsSource != nullptr) {
+		if(wasWalking == false && walking == true) {
+			stepsSource->play(*stepsBuffer);
+		}
+		if(wasWalking == true && walking == false) {
+			stepsSource->stop();
+		}
+	}
 
 }

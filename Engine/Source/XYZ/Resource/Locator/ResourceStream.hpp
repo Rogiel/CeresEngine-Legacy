@@ -12,10 +12,30 @@
 
 namespace XYZ::Resource::Locator {
 
+	enum class ResourceStreamSeekType {
+
+		/**
+		 * Sets the absolute position of the stream
+		 */
+				SET,
+
+		/**
+		 * Increments the stream position
+		 */
+				CURRENT_POSITON,
+
+	};
+
 	/**
 	 * A ResourceStream object allows a user to read from a located resource
 	 */
 	class ResourceStream {
+	public:
+		/**
+		 * Virtual destructor.
+		 */
+		virtual ~ResourceStream() = default;
+
 	public:
 		/**
 		 * Reads <tt>len</tt> bytes from the resource stream
@@ -26,6 +46,19 @@ namespace XYZ::Resource::Locator {
 		 * @return the number of bytes effectively read
 		 */
 		virtual std::streamsize read(uint8_t* bytes, std::streamsize len) = 0;
+
+		/**
+		 * Seeks the stream to the position <tt>position</tt>.
+		 *
+		 * @param seek the position to seek to or with
+		 * @param type the seeking type
+		 */
+		virtual void seek(std::streamsize seek, ResourceStreamSeekType type = ResourceStreamSeekType::SET) = 0;
+
+		/**
+		 * @return the current stream position
+		 */
+		virtual std::streamsize tell() = 0;
 
 		/**
 		 * Checks if a stream has any remaining data
