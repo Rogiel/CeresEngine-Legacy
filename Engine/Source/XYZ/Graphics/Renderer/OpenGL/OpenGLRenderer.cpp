@@ -53,7 +53,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	// -----------------------------------------------------------------------------------------------------------------
 
-	Framebuffer& OpenGLRenderer::getDefaultFramebuffer() {
+	OpenGLFramebuffer& OpenGLRenderer::getDefaultFramebuffer() {
 		return defaultFramebuffer;
 	}
 

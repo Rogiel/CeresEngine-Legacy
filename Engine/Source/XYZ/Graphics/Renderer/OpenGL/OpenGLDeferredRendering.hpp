@@ -29,6 +29,18 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		OpenGLShaderProgram geometryBufferShader;
 
 	private:
+		OpenGLTexture shadowMap;
+
+		/**
+		 * The OpenGL geometry buffer
+		 */
+		OpenGLFramebuffer shadowMapBuffer;
+
+		/**
+		 * The geometry shader program
+		 */
+		OpenGLShaderProgram shadowMapShader;
+
 		/**
 		 * The directional light shader program
 		 */
@@ -103,6 +115,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		 */
 		void render(Scene::Scene& scene);
 
+		void resize(unsigned int width, unsigned height);
+
 	private:
 		/**
 		 * Render the geometry buffer pass
@@ -132,6 +146,15 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		 * @param parentModelMatrix the model matrix of the objects parent
 		 */
 		void renderGeometryBufferObject(Scene::Object& object, const glm::mat4& parentModelMatrix);
+
+		/**
+		 *
+		 * @param scene
+		 * @param light
+		 */
+		glm::mat4 renderShadowMapBuffer(Scene::Scene& scene, Scene::Light::Light& light);
+
+		void renderShadowMapBufferObject(Scene::Object& object, const glm::mat4& lightSpaceMatrix, const glm::mat4& parentModelMatrix);
 	};
 
 	/**
@@ -143,6 +166,16 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	 * The Geometry Fragment shader source
 	 */
 	extern const Shader::ShaderSource GeometryFragmentShaderSource;
+
+	/**
+	 * The Geometry Vertex shader source
+	 */
+	extern const Shader::ShaderSource ShadowMapVertexShaderSource;
+
+	/**
+	 * The Geometry Fragment shader source
+	 */
+	extern const Shader::ShaderSource ShadowMapFragmentShaderSource;
 
 	/**
 	 * The Lighting pass vertex shader source

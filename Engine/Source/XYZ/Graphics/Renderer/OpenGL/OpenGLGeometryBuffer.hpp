@@ -40,7 +40,17 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	public:
 		OpenGLGeometryBuffer(unsigned int width, unsigned int height);
+
+		OpenGLGeometryBuffer(const OpenGLGeometryBuffer& other) = delete;
+		OpenGLGeometryBuffer& operator=(const OpenGLGeometryBuffer& other) = delete;
+
+		OpenGLGeometryBuffer(OpenGLGeometryBuffer&& other) = default;
+		OpenGLGeometryBuffer& operator=(OpenGLGeometryBuffer&& other) = default;
+
 		~OpenGLGeometryBuffer();
+
+	public:
+		void resize(unsigned int width, unsigned height);
 
 	public:
 		void activate();

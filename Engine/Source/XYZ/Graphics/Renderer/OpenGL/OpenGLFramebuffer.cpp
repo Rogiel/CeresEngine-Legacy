@@ -58,6 +58,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	}
 
 	void OpenGLFramebuffer::activate() {
+		glViewport(0, 0, width, height);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebufferID);
 		updateFramebufferState(configuration);
 	}
@@ -67,6 +68,11 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------
+
+	void OpenGLFramebuffer::resize(unsigned int width, unsigned int height) {
+		OpenGLFramebuffer::width = width;
+		OpenGLFramebuffer::height = height;
+	}
 
 	void OpenGLFramebuffer::copy(Framebuffer& destination) const {
 		auto& openGLFramebuffer = static_cast<OpenGLFramebuffer&>(destination);

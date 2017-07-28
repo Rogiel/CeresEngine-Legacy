@@ -79,8 +79,8 @@ uniform PhongMaterial material;
 
 void main() {
     // store the fragment position vector in the first gbuffer texture
-    gPosition.rgb = FragPos;
-//    gPosition.a = gl_FragDepth;
+    gPosition.xyz = FragPos;
+    gPosition.w = 0.0;
 
     // also store the per-fragment normals into the gbuffer
     vec3 bump = texture(material.normal, TexCoords).xyz * 2.0 - 1.0;
@@ -265,6 +265,9 @@ in vec2 TexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
+uniform sampler2D shadowMap;
+
+uniform mat4 lightSpaceMatrix;
 
 layout(std140) uniform ViewProjection {
     mat4 projection;
@@ -291,6 +294,7 @@ uniform struct SpotLight {
 
 // function prototypes
 mat3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shininess);
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir);
 
 void main() {
     // retrieve data from gbuffer
@@ -331,13 +335,70 @@ mat3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, flo
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
+	// shadows
+	float visibility = ShadowCalculation(lightSpaceMatrix * vec4(fragPos, 1.0), normal, lightDir);
+
     // combine results
     return mat3(
         light.ambient * attenuation * intensity,
-        light.diffuse * diff * attenuation * intensity,
-        light.specular * spec * attenuation * intensity
+        light.diffuse * diff * attenuation * intensity * visibility,
+        light.specular * spec * attenuation * intensity * visibility
     );
 }
+
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+	// if outside of shadow map bounds, return no shadows
+	if(projCoords.z > 1.0)
+        return 1.0;
+
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+
+	// compute the bias factor based on the fragment distance from the light
+//	float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.0005);
+	const float bias = 0.0;
+
+	// apply a PCSS technique to get a bit better shadows
+	const int smoothing = 2;
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+	for(int x = -smoothing; x <= smoothing; ++x) {
+		for(int y = -smoothing; y <= smoothing; ++y) {
+			float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > pcfDepth ? 0.5 : 1.0;
+		}
+	}
+	shadow /= pow(2.0 * float(smoothing) + 1.0, 2);
+
+	// return the shadow to the caller
+	return shadow;
+}
+)";
+
+	const Shader::ShaderSource ShadowMapVertexShaderSource = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+
+uniform mat4 lightSpaceMatrix;
+uniform mat4 model;
+
+void main() {
+    gl_Position = lightSpaceMatrix * model * vec4(aPos, 1.0);
+}
+)";
+
+	const Shader::ShaderSource ShadowMapFragmentShaderSource = R"(
+#version 330 core
+void main() {}
 )";
 
 }

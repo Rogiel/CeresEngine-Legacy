@@ -230,6 +230,14 @@ namespace XYZ::Scene {
         Object::displacementMap = displacementMap;
     }
 
+	bool Object::getCastShadows() const {
+		return castShadows;
+	}
+
+	void Object::setCastShadows(bool castShadows) {
+		Object::castShadows = castShadows;
+	}
+
 //    const Graphics::Texture::Texture::Ptr& Object::getTexture() const {
 //        return texture;
 //    }

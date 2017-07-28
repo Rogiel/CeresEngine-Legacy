@@ -91,8 +91,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	void OpenGLTexture::resize(size_t width, size_t height) {
 		wrap(textureID, [=]() {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLuint) width, (GLuint) height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-						 nullptr);
+			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, (GLuint) width, (GLuint) height, 0, format, type, nullptr);
 		});
 	}
 
@@ -178,7 +177,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	void OpenGLTexture::setBorderColor(glm::vec4 borderColor) {
 		wrap(textureID, [=]() {
-			glTextureParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
 		});
 	}
 
@@ -186,7 +185,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		glm::vec4 borderColor;
 
 		wrap(textureID, [&]() {
-			glGetTextureParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
+			glGetTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &borderColor[0]);
 		});
 
 		return borderColor;

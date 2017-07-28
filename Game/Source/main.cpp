@@ -178,11 +178,13 @@ int main() {
 	scene.setRootObject(root);
 
 	auto rock = loadObject("Rock", engine, root);
+
 	auto tunnel = root->createChild();
 	for(int i = 0; i < 30; i++) {
 		auto segment = loadObject("Floor", engine, tunnel);
 		segment->position.x += 4.0 * i;
 //		segment->setShininess(0.001f);
+		segment->setCastShadows(false);
 
 		auto track = loadObject("MainRail", engine, segment);
 		track->setShininess(320.0f);
@@ -228,6 +230,7 @@ int main() {
 	spotLight->setConstant(1.0f);
 	spotLight->setLinear(0.09f);
 	spotLight->setQuadratic(0.032f);
+//	spotLight->setAmbient(glm::vec3(1.0, 1.0f, 1.0f));
 
 	spotLight->setCutOff(20.0f);
 	spotLight->setOuterCutOff(25.0f);
@@ -259,6 +262,7 @@ int main() {
 
 		spotLight->setPosition(camera->getPosition());
 		spotLight->setDirection(camera->getFront());
+		spotLight->position.y -= 0.5;
 
 		stepsSource->setPosition(camera->getPosition());
 		stepsSource->setDirection(camera->getFront());

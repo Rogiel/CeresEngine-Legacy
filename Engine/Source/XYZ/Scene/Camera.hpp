@@ -10,6 +10,15 @@
 namespace XYZ::Scene {
 
     class Camera : public Object {
+//    public:
+//        virtual glm::vec3 getPosition();
+//
+//        virtual glm::vec3 getFront();
+//        virtual glm::vec3 getBack();
+//
+//        virtual glm::vec3 getRight();
+//        virtual glm::vec3 getLeft();
+
     public:
         float fieldOfView = 45.0f;
         float aspectRatio = 4.0f / 3.0f;
@@ -35,7 +44,7 @@ namespace XYZ::Scene {
         static constexpr const float PITCH      =  0.0f;
         static constexpr const float SPEED      =  2.5f;
         static constexpr const float SENSITIVTY =  0.1f;
-        static constexpr const float ZOOM       =  45.0f;
+        static constexpr const float ZOOM       =  0.0f;
 
         enum Camera_Movement {
             FORWARD,
@@ -119,23 +128,23 @@ namespace XYZ::Scene {
                     Pitch = -89.0f;
             }
 
-            // Update Front, Right and Up Vectors using the updated Eular angles
+            // Update Front, Right and Up Vectors using the updated Euler angles
             updateCameraVectors();
         }
 
         // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
         void ProcessMouseScroll(float yoffset)
         {
-            if (Zoom >= 1.0f && Zoom <= 45.0f)
-                Zoom -= yoffset;
-            if (Zoom <= 1.0f)
-                Zoom = 1.0f;
-            if (Zoom >= 45.0f)
-                Zoom = 45.0f;
+            if (fieldOfView >= 1.0f && fieldOfView <= 45.0f)
+                fieldOfView -= yoffset;
+            if (fieldOfView <= 1.0f)
+                fieldOfView = 1.0f;
+            if (fieldOfView >= 45.0f)
+                fieldOfView = 45.0f;
         }
 
     public:
-        // Calculates the front vector from the Camera's (updated) Eular Angles
+        // Calculates the front vector from the Camera's (updated) Euler Angles
         void updateCameraVectors() {
             // Calculate the new Front vector
             glm::vec3 front;

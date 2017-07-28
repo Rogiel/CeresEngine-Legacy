@@ -10,7 +10,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 			framebuffer(width, height),
 			positionDepth(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT),
 			normalShininess(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT),
-			albedoSpecular(width, height, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE),
+			albedoSpecular(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT),
 			width(width), height(height)
 	{
 		framebuffer.activate();
@@ -46,6 +46,22 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	OpenGLGeometryBuffer::~OpenGLGeometryBuffer() {
 		glDeleteRenderbuffers(1, &rboDepth);
+	}
+
+	// -----------------------------------------------------------------------------------------------------------------
+
+	void OpenGLGeometryBuffer::resize(unsigned int width, unsigned height) {
+		framebuffer.resize(width, height);
+		positionDepth.resize(width, height);
+		normalShininess.resize(width, height);
+		albedoSpecular.resize(width, height);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		OpenGLGeometryBuffer::width = width;
+		OpenGLGeometryBuffer::height = height;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------

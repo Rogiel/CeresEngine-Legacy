@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/Light.png</file>
+        <file>Resources/Mesh.png</file>
+        <file>Resources/Open.png</file>
+        <file>Resources/Save.png</file>
+    </qresource>
+</RCC>

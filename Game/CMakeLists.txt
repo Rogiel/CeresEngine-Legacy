@@ -36,6 +36,9 @@ set_target_properties(Game PROPERTIES
         
         MACOSX_BUNDLE_LONG_VERSION_STRING 1.0.0
         MACOSX_BUNDLE_SHORT_VERSION_STRING 1.0
+        
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.rogiel.zyx"
+        MACOSX_BUNDLE_ICON_FILE      AppIcon.icns
 )
 foreach(file ${RESOURCES})
     file(RELATIVE_PATH rel_file ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${file})

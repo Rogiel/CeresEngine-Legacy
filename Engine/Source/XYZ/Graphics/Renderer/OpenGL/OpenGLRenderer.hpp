@@ -65,7 +65,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		/**
 		 * @return the default rendering framebuffer (generally the screen framebuffer)
 		 */
-		Framebuffer& getDefaultFramebuffer() final;
+		OpenGLFramebuffer& getDefaultFramebuffer() final;
 
 	public:
 		/**

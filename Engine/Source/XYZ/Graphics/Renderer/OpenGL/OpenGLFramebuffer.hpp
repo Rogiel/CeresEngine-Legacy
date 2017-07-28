@@ -18,7 +18,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	class OpenGLFramebuffer : public Framebuffer {
 		friend class OpenGLRenderer;
 
-	private:
+	public:
 		/**
 		 * The OpenGL Framebuffer ID
 		 */
@@ -92,6 +92,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		void deactivate() override;
 
 	public:
+		void resize(unsigned int width, unsigned int height);
+
 		/**
 		 * Copy the contents of the framebuffer to the <tt>destination</tt>
 		 * framebuffer.

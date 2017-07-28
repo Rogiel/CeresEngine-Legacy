@@ -47,6 +47,8 @@ namespace XYZ::Scene {
         XYZ::Graphics::Texture::Texture::Ptr normalMap;
         XYZ::Graphics::Texture::Texture::Ptr displacementMap;
 
+        bool castShadows = true;
+
     public:
         Object();
         virtual ~Object();
@@ -131,6 +133,10 @@ namespace XYZ::Scene {
 
         const Graphics::Texture::Texture::Ptr& getDisplacementMap() const;
         void setDisplacementMap(const Graphics::Texture::Texture::Ptr& displacementMap);
+
+        bool getCastShadows() const;
+
+        void setCastShadows(bool castShadows);
 
     };
 

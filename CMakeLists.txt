@@ -10,5 +10,9 @@ set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -fno-rtti")
 include(SourceAndDirectoryListing)
 
 add_subdirectory(Engine)
-#add_subdirectory(WorldEditor)
+
+option(XYZ_ENABLE_WORLD_EDITOR "Enable compilation of the XYZ World Editor" OFF)
+if(XYZ_ENABLE_WORLD_EDITOR)
+    add_subdirectory(WorldEditor)
+endif()
 add_subdirectory(Game)

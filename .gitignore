@@ -1,5 +1,5 @@
 ### CMake stuff
-cmake-*/
+cmake-build-*/
 
 ### CLion stuff
 .idea/
