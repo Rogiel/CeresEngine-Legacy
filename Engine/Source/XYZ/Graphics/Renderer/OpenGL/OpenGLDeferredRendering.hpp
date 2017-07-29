@@ -35,6 +35,11 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	private:
 		/**
+		 * A flag indicating if the HDR pass is enabled
+		 */
+		bool lighting = true;
+
+		/**
 		 * A shadow map texture used to render directional lights shadows
 		 */
 		OpenGLTexture shadowMap;
@@ -65,6 +70,13 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		OpenGLShaderProgram shadowCubeMapShader;
 
 		/**
+		 * The framebuffer where lighting computations are done
+		 */
+		OpenGLFramebuffer lightingFramebuffer;
+
+		OpenGLTexture lightingTexture;
+
+		/**
 		 * The directional light shader program
 		 */
 		OpenGLShaderProgram directionalLightShader;
@@ -78,6 +90,57 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		 * The spot light shader program
 		 */
 		OpenGLShaderProgram spotLightShader;
+
+	private:
+		bool bloom = true;
+
+		/**
+		 * A framebuffer used to render the horizontal Gaussian blur
+		 */
+		OpenGLFramebuffer bloomHorizontalBlurFramebuffer;
+
+		/**
+		 * A texture to render the horizontal Gaussian blur to
+		 */
+		OpenGLTexture bloomHorizontalBlurTexture;
+
+		/**
+		 * A framebuffer used to render the vertical Gaussian blur
+		 */
+		OpenGLFramebuffer bloomVerticalBlurFramebuffer;
+
+		/**
+		 * A texture to render the vertical Gaussian blur to
+		 */
+		OpenGLTexture bloomVerticalBlurTexture;
+
+		/**
+		 * A shader program that maps "overexposed" areas of the image to be blurred by
+		 * the bloom blur shader
+		 */
+		OpenGLShaderProgram bloomExposureMappingShaderProgram;
+
+		/**
+		 * A shader program that applies a gaussian blur on the overexposed areas of
+		 * a image
+		 */
+		OpenGLShaderProgram bloomBlurShaderProgram;
+
+	private:
+		/**
+		 * A flag indicating if the HDR pass is enabled
+		 */
+		bool hdr = false;
+
+		/**
+		 * The scene exposure
+		 */
+		float exposure = 1.0;
+
+		/**
+		 * The OpenGL HDR mapping shader program
+		 */
+		OpenGLShaderProgram hdrShaderProgram;
 
 	private:
 		/**
@@ -261,6 +324,26 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	 * The Geometry Fragment shader source
 	 */
 	extern const Shader::ShaderSource SpotLightShadowMapFragmentShaderSource;
+
+	// -----------------------------------------------------------------------------------------------------------------
+
+	extern const Shader::ShaderSource BloomExposureMappingVertexShaderSource;
+	extern const Shader::ShaderSource BloomExposureMappingFragmentShaderSource;
+
+	extern const Shader::ShaderSource BloomBlurVertexShaderSource;
+	extern const Shader::ShaderSource BloomBlurFragmentShaderSource;
+
+	// -----------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * The HDR vertex shader source
+	 */
+	extern const Shader::ShaderSource HDRVertexShaderSource;
+
+	/**
+	 * The HDR fragment shader source
+	 */
+	extern const Shader::ShaderSource HDRFragmentShaderSource;
 	
 }
 

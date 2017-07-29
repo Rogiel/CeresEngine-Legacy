@@ -74,13 +74,13 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		OpenGLFramebuffer::height = height;
 	}
 
-	void OpenGLFramebuffer::copy(Framebuffer& destination) const {
-		auto& openGLFramebuffer = static_cast<OpenGLFramebuffer&>(destination);
+	void OpenGLFramebuffer::copy(Framebuffer& destinationFramebuffer) const {
+		auto& destination = static_cast<OpenGLFramebuffer&>(destinationFramebuffer);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebufferID);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, openGLFramebuffer.framebufferID);
-		glBlitFramebuffer(0, 0, width, height, 0, 0, openGLFramebuffer.width,
-						  openGLFramebuffer.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.framebufferID);
+		glBlitFramebuffer(0, 0, width, height, 0, 0, destination.width,
+						  destination.height, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 

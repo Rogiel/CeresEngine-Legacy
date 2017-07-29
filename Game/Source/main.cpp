@@ -234,8 +234,8 @@ int main() {
 //	scene.addLight(pointLight1);
 
 	auto spotLight = std::make_shared<Scene::Light::SpotLight>();
-	spotLight->setDiffuse(glm::vec3(1.0f, 1.0f, 1.0f));
-	spotLight->setSpecular(glm::vec3(1.0f, 1.0f, 1.0f));
+	spotLight->setDiffuse(glm::vec3(1.0f, 1.0f, 1.0f) * 2.0f);
+	spotLight->setSpecular(glm::vec3(1.0f, 1.0f, 1.0f) * 2.0f);
 	spotLight->setConstant(1.0f);
 	spotLight->setLinear(0.09f);
 	spotLight->setQuadratic(0.032f);

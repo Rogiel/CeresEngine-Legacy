@@ -511,4 +511,108 @@ void main() {
 	const Shader::ShaderSource SpotLightShadowMapVertexShaderSource = DirectionalLightShadowMapVertexShaderSource;
 	const Shader::ShaderSource SpotLightShadowMapFragmentShaderSource = DirectionalLightShadowMapFragmentShaderSource;
 
+	// -----------------------------------------------------------------------------------------------------------------
+
+	const Shader::ShaderSource BloomExposureMappingVertexShaderSource = R"(
+#version 330 core
+
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec2 aTexCoords;
+
+out vec2 TexCoords;
+
+void main() {
+    gl_Position = vec4(aPos, 1.0);
+	TexCoords = aTexCoords;
+}
+)";
+	const Shader::ShaderSource BloomExposureMappingFragmentShaderSource = R"(
+#version 330 core
+
+in vec2 TexCoords;
+out vec4 BloomColor;
+
+uniform sampler2D scene;
+
+void main() {
+	vec3 fragColor = texture(scene, TexCoords).rgb;
+
+	// check whether fragment output is higher than threshold, if so output as brightness color
+	float brightness = dot(fragColor, vec3(0.2126, 0.7152, 0.0722));
+	if(brightness > 1.0) {
+		BloomColor = vec4(vec3(brightness), 1.0);
+	} else {
+		BloomColor = vec4(0.0);
+	}
+}
+)";
+
+	const Shader::ShaderSource BloomBlurVertexShaderSource = BloomExposureMappingVertexShaderSource;
+	const Shader::ShaderSource BloomBlurFragmentShaderSource = R"(
+#version 330 core
+
+in vec2 TexCoords;
+out vec4 FragColor;
+
+uniform sampler2D scene;
+
+uniform bool horizontal;
+
+const float weight[5] = float[] (0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
+
+void main() {
+     vec2 tex_offset = 1.0 / textureSize(scene, 0); // gets size of single texel
+     vec3 result = texture(scene, TexCoords).rgb * weight[0];
+     if(horizontal) {
+         for(int i = 1; i < 5; ++i) {
+            result += texture(scene, TexCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+            result += texture(scene, TexCoords - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+         }
+     } else {
+         for(int i = 1; i < 5; ++i) {
+             result += texture(scene, TexCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+             result += texture(scene, TexCoords - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+         }
+     }
+     FragColor = vec4(result, 1.0);
+}
+)";
+
+	// -----------------------------------------------------------------------------------------------------------------
+
+	const Shader::ShaderSource HDRVertexShaderSource = BloomExposureMappingVertexShaderSource;
+	const Shader::ShaderSource HDRFragmentShaderSource = R"(
+#version 330 core
+
+in vec2 TexCoords;
+out vec4 FragColor;
+
+uniform float exposure;
+
+uniform sampler2D scene;
+uniform sampler2D bloom;
+
+uniform bool hdr = true;
+
+void main() {
+    const float gamma = 2.2;
+
+	// fetch the scene color
+	vec3 hdrColor = vec3(0.0);
+	hdrColor += texture(scene, TexCoords).rgb;
+	hdrColor += texture(bloom, TexCoords).rgb;
+
+	if(hdr) {
+		// tone mapping
+		vec3 result = vec3(1.0) - exp(-hdrColor * exposure);
+
+		// also gamma correct while we're at it
+		result = pow(result, vec3(1.0 / gamma));
+		FragColor = vec4(result, 1.0);
+	} else {
+		FragColor = vec4(hdrColor, 1.0);
+	}
+}
+)";
+
 }

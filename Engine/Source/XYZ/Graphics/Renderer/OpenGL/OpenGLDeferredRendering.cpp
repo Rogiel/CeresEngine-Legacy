@@ -44,6 +44,9 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 //					, OpenGLGeometryShader(PointLightShadowMapGeometryShaderSource)
 			),
 
+			lightingFramebuffer(1024, 768),
+			lightingTexture(1024, 768, GL_RGBA16F, GL_RGBA, GL_FLOAT),
+
 			directionalLightShader(
 					OpenGLVertexShader(LightingVertexShaderSource),
 					OpenGLFragmentShader(DirectionalLightFragmentShaderSource)
@@ -55,6 +58,26 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 			spotLightShader(
 					OpenGLVertexShader(LightingVertexShaderSource),
 					OpenGLFragmentShader(SpotLightFragmentShaderSource)
+			),
+
+			bloomHorizontalBlurFramebuffer(1024, 768),
+			bloomHorizontalBlurTexture(1024, 768, GL_RGBA16F, GL_RGBA, GL_FLOAT),
+
+			bloomVerticalBlurFramebuffer(1024, 768),
+			bloomVerticalBlurTexture(1024, 768, GL_RGBA16F, GL_RGBA, GL_FLOAT),
+
+			bloomExposureMappingShaderProgram(
+					OpenGLVertexShader(BloomExposureMappingVertexShaderSource),
+					OpenGLFragmentShader(BloomExposureMappingFragmentShaderSource)
+			),
+			bloomBlurShaderProgram(
+					OpenGLVertexShader(BloomBlurVertexShaderSource),
+					OpenGLFragmentShader(BloomBlurFragmentShaderSource)
+			),
+
+			hdrShaderProgram(
+					OpenGLVertexShader(HDRVertexShaderSource),
+					OpenGLFragmentShader(HDRFragmentShaderSource)
 			) {
 		viewProjection.init();
 
@@ -83,6 +106,14 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 //		glDrawBuffer(GL_NONE);
 //		glReadBuffer(GL_NONE);
 		shadowCubeMapFBO.deactivate();
+
+		// -----------------------------------------------------------------------------------------------------------------
+
+		lightingTexture.setWrapMode(Texture::TextureWrap::CLAMP_TO_EDGE, Texture::TextureWrap::CLAMP_TO_EDGE);
+
+		lightingFramebuffer.activate();
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lightingTexture.textureID, 0);
+		lightingFramebuffer.deactivate();
 
 		// -------------------------------------------------------------------------------------------------------------
 
@@ -113,6 +144,34 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		spotLightShader.set("gNormal", 1);
 		spotLightShader.set("gAlbedoSpec", 2);
 		spotLightShader.set("shadowMap", 3);
+
+		// -------------------------------------------------------------------------------------------------------------
+
+		bloomHorizontalBlurFramebuffer.activate();
+		bloomHorizontalBlurTexture.setMagnificationMinificationFilter(Texture::TextureMagnification::LINEAR,
+																	Texture::TextureMinification::LINEAR);
+		bloomHorizontalBlurTexture.setWrapMode(Texture::TextureWrap::CLAMP_TO_EDGE,
+											 Texture::TextureWrap::CLAMP_TO_EDGE);
+		glFramebufferTexture2D(
+				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomHorizontalBlurTexture.textureID, 0
+		);
+
+		// -------------------------------------------------------------------------------------------------------------
+
+		bloomVerticalBlurFramebuffer.activate();
+		bloomVerticalBlurTexture.setMagnificationMinificationFilter(Texture::TextureMagnification::LINEAR,
+																  Texture::TextureMinification::LINEAR);
+		bloomVerticalBlurTexture.setWrapMode(Texture::TextureWrap::CLAMP_TO_EDGE,
+										   Texture::TextureWrap::CLAMP_TO_EDGE);
+		glFramebufferTexture2D(
+				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomVerticalBlurTexture.textureID, 0
+		);
+
+		// -----------------------------------------------------------------------------------------------------------------
+
+		hdrShaderProgram.activate();
+		hdrShaderProgram.set("scene", 0);
+		hdrShaderProgram.set("bloom", 1);
 	}
 
 	OpenGLDeferredRendering::OpenGLDeferredRendering(OpenGLDeferredRendering&& other) = default;
@@ -125,12 +184,22 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		// Render the geometry pass
 		renderGeometryBufferPass(scene);
 		renderLightingPass(scene);
+		renderBloomPass();
 		renderHDRPass();
 	}
 
 	void OpenGLDeferredRendering::resize(unsigned int width, unsigned height) {
 		geometryBuffer.resize(width, height);
 		renderer.getDefaultFramebuffer().resize(width, height);
+
+		lightingFramebuffer.resize(width, height);
+		lightingTexture.resize(width, height);
+
+		bloomHorizontalBlurFramebuffer.resize(width, height);
+		bloomHorizontalBlurTexture.resize(width, height);
+
+		bloomVerticalBlurFramebuffer.resize(width, height);
+		bloomVerticalBlurTexture.resize(width, height);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------
@@ -165,10 +234,17 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	}
 
 	void OpenGLDeferredRendering::renderLightingPass(Scene::Scene& scene) {
-		auto& framebuffer = renderer.getDefaultFramebuffer();
+		auto& framebuffer = lightingFramebuffer;
 
 		framebuffer.activate();
 		framebuffer.clear();
+
+		if(!lighting) {
+			geometryBuffer.framebuffer.activate();
+			glReadBuffer(GL_COLOR_ATTACHMENT2);
+			geometryBuffer.framebuffer.copy(framebuffer);
+			return;
+		}
 
 		framebuffer
 				.blending(true)
@@ -285,14 +361,6 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		}
 
 		glBindVertexArray(0);
-	}
-
-	void OpenGLDeferredRendering::renderBloomPass() {
-
-	}
-
-	void OpenGLDeferredRendering::renderHDRPass() {
-		geometryBuffer.framebuffer.copy(renderer.getDefaultFramebuffer());
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------
