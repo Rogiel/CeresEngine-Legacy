@@ -10,6 +10,11 @@
 #include "OpenGLFramebuffer.hpp"
 #include "OpenGLShader.hpp"
 #include "OpenGLRenderer.hpp"
+#include "OpenGLCubeMap.hpp"
+
+#include "XYZ/Scene/Light/DirectionalLight.hpp"
+#include "XYZ/Scene/Light/PointLight.hpp"
+#include "XYZ/Scene/Light/SpotLight.hpp"
 
 namespace XYZ::Graphics::Renderer::OpenGL {
 
@@ -29,17 +34,35 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		OpenGLShaderProgram geometryBufferShader;
 
 	private:
+		/**
+		 * A shadow map texture used to render directional lights shadows
+		 */
 		OpenGLTexture shadowMap;
 
 		/**
-		 * The OpenGL geometry buffer
+		 * The OpenGL shadow framebuffer
 		 */
-		OpenGLFramebuffer shadowMapBuffer;
-
+		OpenGLFramebuffer shadowMapFBO;
+		
 		/**
 		 * The geometry shader program
 		 */
 		OpenGLShaderProgram shadowMapShader;
+
+		/**
+		 * A shadow cube map texture used to render point lights shadows
+		 */
+		OpenGLCubeMap shadowCubeMap;
+
+		/**
+		 * The OpenGL point light shadow framebuffer
+		 */
+		OpenGLFramebuffer shadowCubeMapFBO;
+
+		/**
+		 * The geometry shader program
+		 */
+		OpenGLShaderProgram shadowCubeMapShader;
 
 		/**
 		 * The directional light shader program
@@ -147,14 +170,11 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		 */
 		void renderGeometryBufferObject(Scene::Object& object, const glm::mat4& parentModelMatrix);
 
-		/**
-		 *
-		 * @param scene
-		 * @param light
-		 */
-		glm::mat4 renderShadowMapBuffer(Scene::Scene& scene, Scene::Light::Light& light);
+		glm::mat4 renderShadowMap(Scene::Scene& scene,Scene::Light::DirectionalLight& light);
+		float renderShadowMap(Scene::Scene& scene,Scene::Light::PointLight& light);
+		glm::mat4 renderShadowMap(Scene::Scene& scene,Scene::Light::SpotLight& light);
 
-		void renderShadowMapBufferObject(Scene::Object& object, const glm::mat4& lightSpaceMatrix, const glm::mat4& parentModelMatrix);
+		void renderShadowMapObject(Scene::Object& object, OpenGLShaderProgram& shader, const glm::mat4& parentModelMatrix);
 	};
 
 	/**
@@ -167,36 +187,81 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	 */
 	extern const Shader::ShaderSource GeometryFragmentShaderSource;
 
+	// -----------------------------------------------------------------------------------------------------------------
+
 	/**
 	 * The Geometry Vertex shader source
 	 */
-	extern const Shader::ShaderSource ShadowMapVertexShaderSource;
+	extern const Shader::ShaderSource ShadowCubeMapVertexShaderSource;
 
 	/**
 	 * The Geometry Fragment shader source
 	 */
-	extern const Shader::ShaderSource ShadowMapFragmentShaderSource;
-
+	extern const Shader::ShaderSource ShadowCubeMapFragmentShaderSource;
+	
+	// -----------------------------------------------------------------------------------------------------------------
+	
 	/**
 	 * The Lighting pass vertex shader source
 	 */
 	extern const Shader::ShaderSource LightingVertexShaderSource;
 
+	// -----------------------------------------------------------------------------------------------------------------
+	
 	/**
 	 * The Directional Light shader source
 	 */
 	extern const Shader::ShaderSource DirectionalLightFragmentShaderSource;
 
 	/**
+	 * The Geometry Vertex shader source
+	 */
+	extern const Shader::ShaderSource DirectionalLightShadowMapVertexShaderSource;
+
+	/**
+	 * The Geometry Fragment shader source
+	 */
+	extern const Shader::ShaderSource DirectionalLightShadowMapFragmentShaderSource;
+	
+	// -----------------------------------------------------------------------------------------------------------------
+	
+	/**
 	 * The Point Light shader source
 	 */
 	extern const Shader::ShaderSource PointLightFragmentShaderSource;
 
 	/**
+	 * The Geometry Vertex shader source
+	 */
+	extern const Shader::ShaderSource PointLightShadowMapVertexShaderSource;
+
+	/**
+	 * The Geometry Fragment shader source
+	 */
+	extern const Shader::ShaderSource PointLightShadowMapGeometryShaderSource;
+
+	/**
+	 * The Geometry Fragment shader source
+	 */
+	extern const Shader::ShaderSource PointLightShadowMapFragmentShaderSource;
+	
+	// -----------------------------------------------------------------------------------------------------------------
+	
+	/**
 	 * The Spot Light shader source
 	 */
 	extern const Shader::ShaderSource SpotLightFragmentShaderSource;
 
+	/**
+	 * The Geometry Vertex shader source
+	 */
+	extern const Shader::ShaderSource SpotLightShadowMapVertexShaderSource;
+
+	/**
+	 * The Geometry Fragment shader source
+	 */
+	extern const Shader::ShaderSource SpotLightShadowMapFragmentShaderSource;
+	
 }
 
 

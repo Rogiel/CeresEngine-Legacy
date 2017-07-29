@@ -188,6 +188,8 @@ in vec2 TexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
+uniform samplerCube shadowMap;
+uniform float farPlane;
 
 layout(std140) uniform ViewProjection {
     mat4 projection;
@@ -211,6 +213,7 @@ uniform struct PointLight {
 
 // function prototypes
 mat3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shininess);
+float ShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 viewPos);
 
 void main() {
     // retrieve data from gbuffer
@@ -229,6 +232,9 @@ void main() {
     vec3 color = (result[0] + result[1]) * materialDiffuse + result[2] * materialSpecular;
 
     FragColor = vec4(color, 1.0);
+
+//	float shadow = ShadowCalculation(FragPos, light.position);
+//	FragColor = vec4(shadow, shadow, shadow, 1.0);
 }
 
 // calculates the color when using a point light.
@@ -247,12 +253,56 @@ mat3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, f
     float distance = length(lightPos - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * pow(distance, 2));
 
+//	// compute the shadow visibility factor
+	float visibility = ShadowCalculation(fragPos, lightPos, camera.position);
+//	const float visibility = 1.0;
+
     // combine results
     return mat3(
         light.ambient * attenuation,
-        light.diffuse * diff * attenuation,
-        light.specular * spec * attenuation
+        light.diffuse * diff * attenuation * visibility,
+        light.specular * spec * attenuation * visibility
     );
+}
+
+vec3 sampleOffsetDirections[20] = vec3[](
+   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
+   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+   vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+   vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);
+
+float ShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 viewPos) {
+    // get vector between fragment position and light position
+    vec3 fragToLight = fragPos - lightPos;
+
+	// ise the fragment to light vector to sample from the depth map
+    float closestDepth = texture(shadowMap, fragToLight).r;
+
+    // it is currently in linear range between [0,1], let's re-transform it back to original depth value
+    closestDepth *= farPlane;
+
+    // now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+
+    // test for shadows
+	const float bias = 0.005 * 2;
+    float shadow = currentDepth - bias > closestDepth ? 0.5 : 1.0;
+
+//	float shadow = 0.0;
+//	const float bias   = 0.15;
+//	const int samples  = 2;
+//	float viewDistance = length(viewPos - fragPos);
+//	const float diskRadius = 0.05;
+//	int i = 0;
+////	for(int i = 0; i < 2; i++) {
+//		float closestDepth = texture(shadowMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r * farPlane;
+//		shadow += currentDepth - bias > closestDepth ? 0.0 : 1.0;
+////	}
+//	shadow /= float(samples);
+
+	return shadow;
 }
 )";
 
@@ -384,7 +434,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
 }
 )";
 
-	const Shader::ShaderSource ShadowMapVertexShaderSource = R"(
+	const Shader::ShaderSource DirectionalLightShadowMapVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPos;
 
@@ -396,9 +446,69 @@ void main() {
 }
 )";
 
-	const Shader::ShaderSource ShadowMapFragmentShaderSource = R"(
+	const Shader::ShaderSource DirectionalLightShadowMapFragmentShaderSource = R"(
 #version 330 core
 void main() {}
 )";
+
+	const Shader::ShaderSource PointLightShadowMapVertexShaderSource = R"(
+#version 330 core
+
+layout (location = 0) in vec3 aPos;
+
+out vec4 FragPos;
+
+uniform mat4 lightSpaceMatrix;
+uniform mat4 model;
+
+void main() {
+	FragPos = model * vec4(aPos, 1.0);
+    gl_Position = lightSpaceMatrix * FragPos;
+}
+)";
+
+//	const Shader::ShaderSource PointLightShadowMapGeometryShaderSource = R"(
+//#version 330 core
+//layout (triangles) in;
+//layout (triangle_strip, max_vertices=18) out;
+//
+//uniform mat4 lightSpaceMatrices[6];
+//
+//out vec4 FragPos; // FragPos from GS (output per emitvertex)
+//
+//void main() {
+//    for(int face = 0; face < 6; ++face) {
+//        gl_Layer = face; // built-in variable that specifies to which face we render.
+//        for(int i = 0; i < 3; ++i) // for each triangle's vertices
+//        {
+//            FragPos = gl_in[i].gl_Position;
+//            gl_Position = lightSpaceMatrices[face] * FragPos;
+//            EmitVertex();
+//        }
+//        EndPrimitive();
+//    }
+//}
+//)";
+
+	const Shader::ShaderSource PointLightShadowMapFragmentShaderSource = R"(
+#version 330 core
+in vec4 FragPos;
+
+uniform vec3 lightPos;
+uniform float farPlane;
+
+void main() {
+    float lightDistance = length(FragPos.xyz - lightPos);
+
+    // map to [0;1] range by dividing by far_plane
+    lightDistance = lightDistance / farPlane;
+
+    // write this as modified depth
+    gl_FragDepth = lightDistance;
+}
+)";
+
+	const Shader::ShaderSource SpotLightShadowMapVertexShaderSource = DirectionalLightShadowMapVertexShaderSource;
+	const Shader::ShaderSource SpotLightShadowMapFragmentShaderSource = DirectionalLightShadowMapFragmentShaderSource;
 
 }

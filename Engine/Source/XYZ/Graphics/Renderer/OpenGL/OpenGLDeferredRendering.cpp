@@ -30,10 +30,18 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 			),
 
 			shadowMap(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT),
-			shadowMapBuffer(2048, 2048),
+			shadowMapFBO(2048, 2048),
 			shadowMapShader(
-					OpenGLVertexShader(ShadowMapVertexShaderSource),
-					OpenGLFragmentShader(ShadowMapFragmentShaderSource)
+					OpenGLVertexShader(DirectionalLightShadowMapVertexShaderSource),
+					OpenGLFragmentShader(DirectionalLightShadowMapFragmentShaderSource)
+			),
+
+			shadowCubeMap(1024, 1024, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT),
+			shadowCubeMapFBO(1024, 1024),
+			shadowCubeMapShader(
+					OpenGLVertexShader(PointLightShadowMapVertexShaderSource),
+					OpenGLFragmentShader(PointLightShadowMapFragmentShaderSource)
+//					, OpenGLGeometryShader(PointLightShadowMapGeometryShaderSource)
 			),
 
 			directionalLightShader(
@@ -57,11 +65,24 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		shadowMap.setWrapMode(Texture::TextureWrap::CLAMP_TO_BORDER, Texture::TextureWrap::CLAMP_TO_BORDER);
 		shadowMap.setBorderColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
-		shadowMapBuffer.activate();
+		shadowMapFBO.activate();
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap.textureID, 0);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
-		shadowMapBuffer.deactivate();
+		shadowMapFBO.deactivate();
+
+		// -------------------------------------------------------------------------------------------------------------
+
+		shadowCubeMap.setWrapModeR(Texture::TextureWrap::CLAMP_TO_EDGE);
+		shadowCubeMap.setWrapModeS(Texture::TextureWrap::CLAMP_TO_EDGE);
+		shadowCubeMap.setWrapModeT(Texture::TextureWrap::CLAMP_TO_EDGE);
+
+		shadowCubeMapFBO.activate();
+//		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowCubeMap.textureID, 0);
+//		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X, shadowCubeMap.textureID, 0);
+//		glDrawBuffer(GL_NONE);
+//		glReadBuffer(GL_NONE);
+		shadowCubeMapFBO.deactivate();
 
 		// -------------------------------------------------------------------------------------------------------------
 
@@ -116,6 +137,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	void OpenGLDeferredRendering::renderGeometryBufferPass(Scene::Scene& scene) {
 		geometryBuffer.activate();
+		geometryBuffer.framebuffer.faceCulling(false);
+
 		geometryBuffer.framebuffer.clear();
 
 		geometryBufferShader.activate();
@@ -153,11 +176,6 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 				.faceCulling(false);
 		glBlendFunc(GL_ONE, GL_ONE); // TODO expose this generically
 
-//		geometryBuffer.positionDepth.activate(0);
-//		geometryBuffer.normalShininess.activate(1);
-//		geometryBuffer.albedoSpecular.activate(2);
-//		shadowMap.activate(3);
-
 		static unsigned int quadVAO = 0;
 		static unsigned int quadVBO;
 
@@ -185,22 +203,6 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 		std::vector<std::shared_ptr<Scene::Light::Light>> sortedLights = scene.getLights();
 		for(std::shared_ptr<Scene::Light::Light> genericLight : sortedLights) {
-			// render shadow map
-			glm::mat4 lightSpaceMatrix = renderShadowMapBuffer(scene, *genericLight);
-
-			framebuffer.activate();
-			framebuffer.blending(true)
-					.depthTest(false)
-					.faceCulling(false);
-			glBlendFunc(GL_ONE, GL_ONE);
-
-			geometryBuffer.positionDepth.activate(0);
-			geometryBuffer.normalShininess.activate(1);
-			geometryBuffer.albedoSpecular.activate(2);
-			shadowMap.activate(3);
-
-			glBindVertexArray(quadVAO);
-
 			switch(genericLight->getLightType()) {
 				case Scene::Light::LightType::DIRECTIONAL: {
 					auto light = std::static_pointer_cast<Scene::Light::DirectionalLight>(genericLight);
@@ -218,6 +220,9 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 				case Scene::Light::LightType::POINT: {
 					auto light = std::static_pointer_cast<Scene::Light::PointLight>(genericLight);
 
+					// render shadow map
+					float farPlane = renderShadowMap(scene, *light);
+
 					pointLightShader.activate();
 
 					pointLightShader.set("light.position", light->getPosition());
@@ -229,11 +234,18 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 					pointLightShader.set("light.linear", light->getLinear());
 					pointLightShader.set("light.quadratic", light->getQuadratic());
 
+					pointLightShader.set("farPlane", farPlane);
+
+					shadowCubeMap.activate(3);
+
 					break;
 				}
 
 				case Scene::Light::LightType::SPOT: {
 					auto light = std::static_pointer_cast<Scene::Light::SpotLight>(genericLight);
+
+					// render shadow map
+					glm::mat4 lightSpaceMatrix = renderShadowMap(scene, *light);
 
 					spotLightShader.activate();
 
@@ -252,10 +264,23 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 					spotLightShader.set("lightSpaceMatrix", lightSpaceMatrix);
 
+					shadowMap.activate(3);
+
 					break;
 				}
 			}
 
+			framebuffer.activate();
+			framebuffer.blending(true)
+					.depthTest(false)
+					.faceCulling(false);
+			glBlendFunc(GL_ONE, GL_ONE);
+
+			geometryBuffer.positionDepth.activate(0);
+			geometryBuffer.normalShininess.activate(1);
+			geometryBuffer.albedoSpecular.activate(2);
+
+			glBindVertexArray(quadVAO);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 
@@ -352,15 +377,73 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		}
 	}
 
-	glm::mat4 OpenGLDeferredRendering::renderShadowMapBuffer(Scene::Scene& scene, Scene::Light::Light& light) {
-		shadowMapBuffer.activate();
-		shadowMapBuffer.clear();
+	float OpenGLDeferredRendering::renderShadowMap(Scene::Scene& scene, Scene::Light::PointLight& light) {
+		const float farPlane = 1000.0f;
+		glm::mat4 lightProjection = glm::perspective<float>(glm::radians(90.0f), 1.0f, 0.1f, farPlane);
+
+		auto lightPos = light.getPosition();
+
+		std::vector<glm::mat4> lightSpaceMatrices(6);
+		lightSpaceMatrices[0] = lightProjection * glm::lookAt(
+				lightPos,
+				lightPos + glm::vec3(1.0, 0.0, 0.0),
+				glm::vec3(0.0, -1.0, 0.0)
+		);
+		lightSpaceMatrices[1] = lightProjection * glm::lookAt(
+				lightPos,
+				lightPos + glm::vec3(-1.0, 0.0, 0.0),
+				glm::vec3(0.0, -1.0, 0.0)
+		);
+		lightSpaceMatrices[2] = lightProjection * glm::lookAt(
+				lightPos,
+				lightPos + glm::vec3(0.0, 1.0, 0.0),
+				glm::vec3(0.0, 0.0, 1.0)
+		);
+		lightSpaceMatrices[3] = lightProjection * glm::lookAt(
+				lightPos,
+				lightPos + glm::vec3(0.0, -1.0, 0.0),
+				glm::vec3(0.0, 0.0, -1.0)
+		);
+		lightSpaceMatrices[4] = lightProjection * glm::lookAt(
+				lightPos,
+				lightPos + glm::vec3(0.0, 0.0, 1.0),
+				glm::vec3(0.0, -1.0, 0.0)
+		);
+		lightSpaceMatrices[5] = lightProjection * glm::lookAt(
+				lightPos,
+				lightPos + glm::vec3(0.0, 0.0, -1.0),
+				glm::vec3(0.0, -1.0, 0.0)
+		);
+
+		shadowCubeMapShader.activate();
+		shadowCubeMapShader.set("lightPos", lightPos);
+		shadowCubeMapShader.set("farPlane", farPlane);
+
+		for(unsigned int i = 0; i < 6; i++) {
+			shadowCubeMapShader.set("lightSpaceMatrix", lightSpaceMatrices[i]);
+
+			shadowCubeMapFBO.activate();
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+								   shadowCubeMap.textureID, 0);
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			renderShadowMapObject(*scene.getRootObject(), shadowCubeMapShader, glm::mat4(1.0));
+		}
+
+		return farPlane;
+	}
+
+	glm::mat4 OpenGLDeferredRendering::renderShadowMap(Scene::Scene& scene, Scene::Light::SpotLight& light) {
+		shadowMapFBO.activate();
+		shadowMapFBO.clear();
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 lightProjection = glm::perspective<float>(glm::radians(90.0f), 1.0f, 0.1f, 1000.0f);
 		glm::mat4 lightView = glm::lookAt(
 				light.getPosition(),
-				light.getPosition() + static_cast<Scene::Light::SpotLight&>(light).getDirection(),
+				light.getPosition() + light.getDirection(),
 				glm::vec3(0, 1, 0));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
@@ -368,14 +451,14 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		shadowMapShader.set("lightSpaceMatrix", lightSpaceMatrix);
 
 		glCullFace(GL_FRONT);
-		renderShadowMapBufferObject(*scene.getRootObject(), lightSpaceMatrix, glm::mat4(1.0));
+		renderShadowMapObject(*scene.getRootObject(), shadowMapShader, glm::mat4(1.0));
 		glCullFace(GL_BACK);
 
 		return lightSpaceMatrix;
 	}
 
-	void OpenGLDeferredRendering::renderShadowMapBufferObject(Scene::Object& object, const glm::mat4& lightSpaceMatrix,
-															  const glm::mat4& parentModelMatrix) {
+	void OpenGLDeferredRendering::renderShadowMapObject(Scene::Object& object, OpenGLShaderProgram& shader,
+														const glm::mat4& parentModelMatrix) {
 		auto translation = object.getPosition();
 		auto rotation = object.getRotation();
 		auto scale = object.getScale();
@@ -401,7 +484,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		);
 
 		if(object.getCastShadows()) {
-			shadowMapShader.set("model", modelMatrix);
+			shader.set("model", modelMatrix);
 
 			if(const auto& mesh = object.getMesh()) {
 				auto compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(object.getMesh()->getCompiledMesh());
@@ -420,7 +503,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 		// render all children
 		for(const auto& child : object.getChildren()) {
-			renderShadowMapBufferObject(*child, lightSpaceMatrix, modelMatrix);
+			renderShadowMapObject(*child, shader, modelMatrix);
 		}
 	}
 

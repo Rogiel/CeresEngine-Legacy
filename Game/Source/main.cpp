@@ -180,7 +180,7 @@ int main() {
 	auto rock = loadObject("Rock", engine, root);
 
 	auto tunnel = root->createChild();
-	for(int i = 0; i < 30; i++) {
+	for(int i = 0; i < 3; i++) {
 		auto segment = loadObject("Floor", engine, tunnel);
 		segment->position.x += 4.0 * i;
 //		segment->setShininess(0.001f);
@@ -196,25 +196,25 @@ int main() {
 		auto electricityRail = loadObject("ElectricityRail", engine, segment);
 
 		using glm::vec3;
-		float strength = 0.3f;
+		float strength = 0.4f;
 
 		auto pointLight1 = std::make_shared<Scene::Light::PointLight>();
-		pointLight1->setPosition(vec3(segment->position.x, 1.88f, 1.88f));
+		pointLight1->setPosition(vec3(segment->position.x, 1.8f, 1.7f));
 		pointLight1->setDiffuse(vec3(1.0f, 1.0f, 1.0f) * strength);
 		pointLight1->setSpecular(vec3(1.0f, 1.0f, 1.0f) * strength);
 		pointLight1->setConstant(1.0f);
 		pointLight1->setLinear(0.09f);
 		pointLight1->setQuadratic(0.032f);
-//		scene.addLight(pointLight1);
+		scene.addLight(pointLight1);
 
 		auto pointLight2 = std::make_shared<Scene::Light::PointLight>();
-		pointLight2->setPosition(vec3(segment->position.x, 1.88f, -1.88f));
+		pointLight2->setPosition(vec3(segment->position.x, 1.8f, -1.7f));
 		pointLight2->setDiffuse(vec3(1.0f, 1.0f, 1.0f) * strength);
 		pointLight2->setSpecular(vec3(1.0f, 1.0f, 1.0f) * strength);
 		pointLight2->setConstant(pointLight1->getConstant());
 		pointLight2->setLinear(pointLight1->getLinear());
 		pointLight2->setQuadratic(pointLight1->getQuadratic());
-//		scene.addLight(pointLight2);
+		scene.addLight(pointLight2);
 	}
 
 	camera = std::make_shared<Scene::Camera>();
@@ -223,6 +223,15 @@ int main() {
 	camera->Yaw = 0.0;
 	camera->Pitch = 0.0;
 	camera->updateCameraVectors();
+
+//	auto pointLight1 = std::make_shared<Scene::Light::PointLight>();
+//	pointLight1->setPosition(glm::vec3(-0.116422, 1.299759, -1.082289));
+//	pointLight1->setDiffuse(glm::vec3(1.0f, 1.0f, 1.0f));
+//	pointLight1->setSpecular(glm::vec3(1.0f, 1.0f, 1.0f));
+//	pointLight1->setConstant(1.0f);
+//	pointLight1->setLinear(0.09f);
+//	pointLight1->setQuadratic(0.032f);
+//	scene.addLight(pointLight1);
 
 	auto spotLight = std::make_shared<Scene::Light::SpotLight>();
 	spotLight->setDiffuse(glm::vec3(1.0f, 1.0f, 1.0f));
@@ -264,6 +273,9 @@ int main() {
 		spotLight->setDirection(camera->getFront());
 		spotLight->position.y -= 0.5;
 
+//		pointLight1->setPosition(camera->getPosition());
+//		pointLight1->position.y -= 0.5;
+
 		stepsSource->setPosition(camera->getPosition());
 		stepsSource->setDirection(camera->getFront());
 
@@ -286,9 +298,8 @@ int main() {
 		float elapsed = float(end - start);
 		deltaTime = elapsed;
 
-//		auto fps = int(1.0 / elapsed);
-////		window.setTitle("Game - " + std::to_string(fps) + " FPS / " + std::to_string(elapsed) + " seconds per frame");
-//		std::cout << fps << std::endl;
+		auto fps = int(1.0 / elapsed);
+		window.setTitle("Game - " + std::to_string(fps) + " FPS / " + std::to_string(elapsed) + " seconds per frame");
 	}
 
 }
