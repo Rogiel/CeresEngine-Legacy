@@ -95,6 +95,7 @@ public:
 #include <XYZ/Scene/Manager/Simple/SimpleSceneManager.hpp>
 #include <XYZ/Graphics/Window/GLFW/GLFWWindow.hpp>
 #include <XYZ/Audio/OpenAL/OpenALAudioBuffer.hpp>
+#include <XYZ/Graphics/Model/StaticModel.hpp>
 
 //int main() {
 //	using namespace XYZ::Scene::Manager::Simple;
@@ -116,30 +117,34 @@ public:
 std::shared_ptr<Scene::Object>
 loadObject(const std::string& name, Engine& engine, const std::shared_ptr<Scene::Object>& parent) {
 	auto object = parent->createChild();
-	object->setMesh(engine.getMeshManager().get("Objects/" + name + "/" + name + ".obj"));
+	auto model = std::make_shared<Graphics::Model::StaticModel>(
+			engine.getMeshManager().get("Objects/" + name + "/" + name + ".obj")
+	);
+	object->setModel(model);
 
-	object->setDiffuse(engine.getRenderer().getTextureCompiler().compileTexture(
+	model->setDiffuseTexture(engine.getRenderer().getTextureCompiler().compileTexture(
 			*engine.getTextureImageManager().get("Objects/" + name + "/" + name + "_diffuse.png")
 	));
-	object->getDiffuse()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
+	model->getDiffuseTexture()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
 															 Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
-	object->getDiffuse()->generateMipmaps();
+	model->getDiffuseTexture()->generateMipmaps();
 
-	object->setSpecular(engine.getRenderer().getTextureCompiler().compileTexture(
+	model->setSpecularTexture(engine.getRenderer().getTextureCompiler().compileTexture(
 			*engine.getTextureImageManager().get("Objects/" + name + "/" + name + "_specular.png")
 	));
-	object->getSpecular()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
+	model->getSpecularTexture()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
 															 Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
-	object->getSpecular()->generateMipmaps();
+	model->getSpecularTexture()->generateMipmaps();
 
-	object->setNormalMap(engine.getRenderer().getTextureCompiler().compileTexture(
+	model->setNormalMap(engine.getRenderer().getTextureCompiler().compileTexture(
 			*engine.getTextureImageManager().get("Objects/" + name + "/" + name + "_normal.png")
 	));
-	object->getNormalMap()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
+	model->getNormalMap()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
 															  Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
-	object->getNormalMap()->generateMipmaps();
+	model->getNormalMap()->generateMipmaps();
 
-	object->setShininess(32.0f);
+	model->setShininess(32.0f);
+	model->setCastShadows(true);
 
 	return object;
 }
@@ -184,10 +189,10 @@ int main() {
 		auto segment = loadObject("Floor", engine, tunnel);
 		segment->position.x += 4.0 * i;
 //		segment->setShininess(0.001f);
-		segment->setCastShadows(false);
+		static_cast<Graphics::Model::StaticModel*>(segment->getModel().get())->setCastShadows(false);
 
 		auto track = loadObject("MainRail", engine, segment);
-		track->setShininess(320.0f);
+		static_cast<Graphics::Model::StaticModel*>(track->getModel().get())->setShininess(320.0f);
 
 		auto pipes = loadObject("Pipes", engine, segment);
 
@@ -198,23 +203,23 @@ int main() {
 		using glm::vec3;
 		float strength = 0.4f;
 
-		auto pointLight1 = std::make_shared<Scene::Light::PointLight>();
-		pointLight1->setPosition(vec3(segment->position.x, 1.8f, 1.7f));
-		pointLight1->setDiffuse(vec3(1.0f, 1.0f, 1.0f) * strength);
-		pointLight1->setSpecular(vec3(1.0f, 1.0f, 1.0f) * strength);
-		pointLight1->setConstant(1.0f);
-		pointLight1->setLinear(0.09f);
-		pointLight1->setQuadratic(0.032f);
-		scene.addLight(pointLight1);
-
-		auto pointLight2 = std::make_shared<Scene::Light::PointLight>();
-		pointLight2->setPosition(vec3(segment->position.x, 1.8f, -1.7f));
-		pointLight2->setDiffuse(vec3(1.0f, 1.0f, 1.0f) * strength);
-		pointLight2->setSpecular(vec3(1.0f, 1.0f, 1.0f) * strength);
-		pointLight2->setConstant(pointLight1->getConstant());
-		pointLight2->setLinear(pointLight1->getLinear());
-		pointLight2->setQuadratic(pointLight1->getQuadratic());
-		scene.addLight(pointLight2);
+//		auto pointLight1 = std::make_shared<Scene::Light::PointLight>();
+//		pointLight1->setPosition(vec3(segment->position.x, 1.8f, 1.7f));
+//		pointLight1->setDiffuse(vec3(1.0f, 1.0f, 1.0f) * strength);
+//		pointLight1->setSpecular(vec3(1.0f, 1.0f, 1.0f) * strength);
+//		pointLight1->setConstant(1.0f);
+//		pointLight1->setLinear(0.09f);
+//		pointLight1->setQuadratic(0.032f);
+//		scene.addLight(pointLight1);
+//
+//		auto pointLight2 = std::make_shared<Scene::Light::PointLight>();
+//		pointLight2->setPosition(vec3(segment->position.x, 1.8f, -1.7f));
+//		pointLight2->setDiffuse(vec3(1.0f, 1.0f, 1.0f) * strength);
+//		pointLight2->setSpecular(vec3(1.0f, 1.0f, 1.0f) * strength);
+//		pointLight2->setConstant(pointLight1->getConstant());
+//		pointLight2->setLinear(pointLight1->getLinear());
+//		pointLight2->setQuadratic(pointLight1->getQuadratic());
+//		scene.addLight(pointLight2);
 	}
 
 	camera = std::make_shared<Scene::Camera>();
@@ -290,7 +295,6 @@ int main() {
 		if(glfwWindowShouldClose(glfwGetCurrentContext())) {
 			return 0;
 		}
-
 		glFinish();
 
 		auto end = glfwGetTime();

@@ -156,94 +156,14 @@ namespace XYZ::Scene {
         scale.z = z;
     }
 
-    // -----------------------------------------------------------------------------------------------------------------
+	// -----------------------------------------------------------------------------------------------------------------
 
-    const XYZ::Graphics::Mesh::Mesh::Ptr &Object::getMesh() const {
-        return mesh;
+    const Graphics::Model::Model::Ptr& Object::getModel() const {
+        return model;
     }
 
-    void Object::setMesh(const XYZ::Graphics::Mesh::Mesh::Ptr &mesh) {
-        Object::mesh = mesh;
+    void Object::setModel(const Graphics::Model::Model::Ptr& model) {
+        Object::model = model;
     }
-
-    const XYZ::Graphics::Shader::ShaderProgram::Ptr &Object::getShader() const {
-        return shader;
-    }
-
-    void Object::setShader(const XYZ::Graphics::Shader::ShaderProgram::Ptr &shader) {
-        Object::shader = shader;
-    }
-
-    const Graphics::Texture::Texture::Ptr& Object::getDiffuse() const {
-        return diffuse;
-    }
-
-    void Object::setDiffuse(const Graphics::Texture::Texture::Ptr& diffuse) {
-        Object::diffuse = diffuse;
-    }
-
-    const Graphics::Texture::Texture::Ptr& Object::getSpecular() const {
-        return specular;
-    }
-
-    void Object::setSpecular(const Graphics::Texture::Texture::Ptr& specular) {
-        Object::specular = specular;
-    }
-
-    const glm::vec3& Object::getDiffuseColor() const {
-        return diffuseColor;
-    }
-
-    void Object::setDiffuseColor(const glm::vec3& diffuseColor) {
-        Object::diffuseColor = diffuseColor;
-    }
-
-    const glm::vec3& Object::getSpecularColor() const {
-        return specularColor;
-    }
-
-    void Object::setSpecularColor(const glm::vec3& specularColor) {
-        Object::specularColor = specularColor;
-    }
-
-    float Object::getShininess() const {
-        return shininess;
-    }
-
-    void Object::setShininess(float shininess) {
-        Object::shininess = shininess;
-    }
-
-    const Graphics::Texture::Texture::Ptr& Object::getNormalMap() const {
-        return normalMap;
-    }
-
-    void Object::setNormalMap(const Graphics::Texture::Texture::Ptr& normalMap) {
-        Object::normalMap = normalMap;
-    }
-
-    const Graphics::Texture::Texture::Ptr& Object::getDisplacementMap() const {
-        return displacementMap;
-    }
-
-    void Object::setDisplacementMap(const Graphics::Texture::Texture::Ptr& displacementMap) {
-        Object::displacementMap = displacementMap;
-    }
-
-	bool Object::getCastShadows() const {
-		return castShadows;
-	}
-
-	void Object::setCastShadows(bool castShadows) {
-		Object::castShadows = castShadows;
-	}
-
-//    const Graphics::Texture::Texture::Ptr& Object::getTexture() const {
-//        return texture;
-//    }
-//
-//    void Object::setTexture(const Graphics::Texture::Texture::Ptr& texture) {
-//        Object::texture = texture;
-//    }
 
 }

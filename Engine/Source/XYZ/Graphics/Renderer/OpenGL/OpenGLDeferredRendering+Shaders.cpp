@@ -83,8 +83,11 @@ void main() {
     gPosition.w = 0.0;
 
     // also store the per-fragment normals into the gbuffer
-    vec3 bump = texture(material.normal, TexCoords).xyz * 2.0 - 1.0;
-    gNormal.rgb = normalize(TBN * bump);
+	vec3 normal = texture(material.normal, TexCoords).xyz * 2.0 - 1.0;
+	if(gl_FrontFacing == false) {
+    	normal = -normal;
+	}
+    gNormal.rgb = normalize(TBN * normal);
     gNormal.a = material.shininess;
 
     // and the diffuse per-fragment color

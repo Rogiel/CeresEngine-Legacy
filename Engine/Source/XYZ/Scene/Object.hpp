@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "XYZ/Graphics/Mesh/Mesh.hpp"
-#include "XYZ/Graphics/Shader/ShaderProgram.hpp"
+#include "XYZ/Graphics/Model/Model.hpp"
 
 #include <memory>
 #include <vector>
@@ -33,21 +32,7 @@ namespace XYZ::Scene {
         Scale scale = Scale(1.0f);
 
     private:
-        Graphics::Mesh::Mesh::Ptr mesh;
-        XYZ::Graphics::Shader::ShaderProgram::Ptr shader;
-
-        glm::vec3 diffuseColor = glm::vec3(0.0);
-        XYZ::Graphics::Texture::Texture::Ptr diffuse;
-
-        glm::vec3 specularColor = glm::vec3(0.0);
-        XYZ::Graphics::Texture::Texture::Ptr specular;
-
-        float shininess = 32.0f;
-
-        XYZ::Graphics::Texture::Texture::Ptr normalMap;
-        XYZ::Graphics::Texture::Texture::Ptr displacementMap;
-
-        bool castShadows = true;
+        Graphics::Model::Model::Ptr model;
 
     public:
         Object();
@@ -104,39 +89,8 @@ namespace XYZ::Scene {
 
 
     public:
-        const Graphics::Mesh::Mesh::Ptr &getMesh() const;
-        void setMesh(const Graphics::Mesh::Mesh::Ptr &mesh);
-
-        const XYZ::Graphics::Shader::ShaderProgram::Ptr &getShader() const;
-        void setShader(const XYZ::Graphics::Shader::ShaderProgram::Ptr &shader);
-
-//        const Graphics::Texture::Texture::Ptr& getTexture() const;
-//        void setTexture(const Graphics::Texture::Texture::Ptr& texture);
-
-        const Graphics::Texture::Texture::Ptr& getDiffuse() const;
-        void setDiffuse(const std::shared_ptr <Graphics::Texture::Texture>& diffuse);
-
-        const std::shared_ptr <Graphics::Texture::Texture>& getSpecular() const;
-        void setSpecular(const std::shared_ptr <Graphics::Texture::Texture>& specular);
-
-        const glm::vec3& getDiffuseColor() const;
-        void setDiffuseColor(const glm::vec3& diffuseColor);
-
-        const glm::vec3& getSpecularColor() const;
-        void setSpecularColor(const glm::vec3& specularColor);
-
-        float getShininess() const;
-        void setShininess(float shininess);
-
-        const Graphics::Texture::Texture::Ptr& getNormalMap() const;
-        void setNormalMap(const Graphics::Texture::Texture::Ptr& normalMap);
-
-        const Graphics::Texture::Texture::Ptr& getDisplacementMap() const;
-        void setDisplacementMap(const Graphics::Texture::Texture::Ptr& displacementMap);
-
-        bool getCastShadows() const;
-
-        void setCastShadows(bool castShadows);
+        const Graphics::Model::Model::Ptr& getModel() const;
+        void setModel(const Graphics::Model::Model::Ptr& model);
 
     };
 

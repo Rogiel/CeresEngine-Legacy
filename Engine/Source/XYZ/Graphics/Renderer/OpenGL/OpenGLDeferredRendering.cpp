@@ -394,50 +394,24 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		geometryBufferShader.set("model", modelMatrix);
 		geometryBufferShader.set("inversedTransposedModel", glm::transpose(glm::inverse(modelMatrix)));
 
-		geometryBufferShader.set("material.shininess", object.getShininess());
-		geometryBufferShader.set("material.diffuseColor", object.getDiffuseColor());
-		geometryBufferShader.set("material.specularColor", object.getSpecularColor());
-
-		// If there is a texture, activate it.
-		if(auto diffuse = std::static_pointer_cast<OpenGLTexture>(object.getDiffuse())) {
-			diffuse->activate(0);
-			geometryBufferShader.set("material.diffuse", 0);
+		if(const auto& model = object.getModel()) {
+			model->setMaterialShaderUniforms(geometryBufferShader);
+			model->render(renderer);
 		}
-
-		if(auto specular = std::static_pointer_cast<OpenGLTexture>(object.getSpecular())) {
-			specular->activate(1);
-			geometryBufferShader.set("material.specular", 1);
-		}
-
-		if(auto normalMap = std::static_pointer_cast<OpenGLTexture>(object.getNormalMap())) {
-			normalMap->activate(2);
-			geometryBufferShader.set("material.normal", 2);
-			geometryBufferShader.set("material.hasNormalMap", true);
-		} else {
-			geometryBufferShader.set("material.hasNormalMap", false);
-		}
-
-		if(auto displacementMap = std::static_pointer_cast<OpenGLTexture>(object.getDisplacementMap())) {
-			displacementMap->activate(3);
-			geometryBufferShader.set("material.displacementMap", 3);
-			geometryBufferShader.set("material.hasDisplacementMap", true);
-		} else {
-			geometryBufferShader.set("material.hasDisplacementMap", false);
-		}
-
-		if(const auto& mesh = object.getMesh()) {
-			auto compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(object.getMesh()->getCompiledMesh());
-			if(compiledMesh == nullptr) {
-				// compile the mesh
-				compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(renderer.getMeshCompiler().compileMesh(
-						*object.getMesh()
-				));
-				object.getMesh()->setCompiledMesh(compiledMesh);
-			}
-
-			// Draw the triangles
-			compiledMesh->draw();
-		}
+//
+//		if(const auto& mesh = object.getMesh()) {
+//			auto compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(object.getMesh()->getCompiledMesh());
+//			if(compiledMesh == nullptr) {
+//				// compile the mesh
+//				compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(renderer.getMeshCompiler().compileMesh(
+//						*object.getMesh()
+//				));
+//				object.getMesh()->setCompiledMesh(compiledMesh);
+//			}
+//
+//			// Draw the triangles
+//			compiledMesh->draw();
+//		}
 
 		// render all children
 		for(const auto& child : object.getChildren()) {
@@ -551,23 +525,26 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 				scale
 		);
 
-		if(object.getCastShadows()) {
+//		if(object.getModel()->sh) {
+		if(const auto& model = object.getModel()) {
 			shader.set("model", modelMatrix);
-
-			if(const auto& mesh = object.getMesh()) {
-				auto compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(object.getMesh()->getCompiledMesh());
-				if(compiledMesh == nullptr) {
-					// compile the mesh
-					compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(renderer.getMeshCompiler().compileMesh(
-							*object.getMesh()
-					));
-					object.getMesh()->setCompiledMesh(compiledMesh);
-				}
-
-				// Draw the triangles
-				compiledMesh->draw();
-			}
+			object.getModel()->render(renderer);
 		}
+
+//			if(const auto& mesh = object.getMesh()) {
+//				auto compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(object.getMesh()->getCompiledMesh());
+//				if(compiledMesh == nullptr) {
+//					// compile the mesh
+//					compiledMesh = std::static_pointer_cast<OpenGLVertexBuffer>(renderer.getMeshCompiler().compileMesh(
+//							*object.getMesh()
+//					));
+//					object.getMesh()->setCompiledMesh(compiledMesh);
+//				}
+//
+//				// Draw the triangles
+//				compiledMesh->draw();
+//			}
+//		}
 
 		// render all children
 		for(const auto& child : object.getChildren()) {

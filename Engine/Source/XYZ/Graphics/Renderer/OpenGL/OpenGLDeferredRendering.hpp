@@ -35,7 +35,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	private:
 		/**
-		 * A flag indicating if the HDR pass is enabled
+		 * A flag indicating if the lighting pass is enabled
 		 */
 		bool lighting = true;
 
@@ -74,6 +74,9 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		 */
 		OpenGLFramebuffer lightingFramebuffer;
 
+		/**
+		 * A texture where the lighting passes write data to
+		 */
 		OpenGLTexture lightingTexture;
 
 		/**
