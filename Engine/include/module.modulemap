@@ -1,0 +1,5 @@
+module CGameEngine {
+    header "stb_image.h"
+    header "ObjLoader.h"
+    export *
+}

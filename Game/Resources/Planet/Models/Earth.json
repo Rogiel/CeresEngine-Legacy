@@ -1,0 +1,13 @@
+{
+  "mesh": "Earth/Earth.obj",
+  "pbrMaterial": {
+    "albedoMap": "Earth/Earth_diffuse.png",
+    "normalMap": "Earth/Earth_normal.png",
+    "metallicMap": "Earth/Earth_specular.png",
+    "roughnessMap": "Earth/Earth_roughness.png",
+    "ambientOcclusionMap": "Earth/Earth_specular.png",
+    "displacementMap": "Earth/Earth_bump.jpg",
+    "maximumDisplacement": 0.0,
+    "emissionMap": "Earth/Earth_bump.jpg"
+  }
+}

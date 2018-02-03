@@ -1,0 +1,4 @@
+module CNanoVG {
+    header "CNanoVG.h"
+    export *
+}

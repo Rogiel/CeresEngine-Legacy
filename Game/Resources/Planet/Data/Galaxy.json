@@ -1,0 +1,184 @@
+[
+  {
+    "radius": 3481960000,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "name": "Sun",
+    "mass": 0
+  },
+  {
+    "radius": 6371000,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 1496000000000,
+      "eccentricity": 0.0167,
+      "inclination": 0.12487830798019428,
+      "primaryID": "Sun",
+      "ascendingNode": 3.0525808617380825,
+      "argumentOfPeriapsis": 5.0282935749956641
+    },
+    "name": "Earth",
+    "mass": 5.9735999999999995e+24
+  },
+  {
+    "radius": 8685500,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 384400000,
+      "eccentricity": 0.054899999999999997,
+      "inclination": 0.089797190015108247,
+      "primaryID": "Earth",
+      "ascendingNode": 0,
+      "argumentOfPeriapsis": 0.1165879940332212
+    },
+    "name": "Moon",
+    "mass": 7.3460000000000003e+22
+  },
+  {
+    "radius": 54.25,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 6775550,
+      "eccentricity": 0.0035000000000000001,
+      "inclination": 0.90128802572987177,
+      "primaryID": "Earth",
+      "ascendingNode": 0,
+      "argumentOfPeriapsis": 0.1165879940332212
+    },
+    "name": "ISS",
+    "mass": 419455
+  },
+  {
+    "radius": 3376200,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 2279200000000,
+      "eccentricity": 0.0935,
+      "inclination": 0.0322885911618951,
+      "primaryID": "Sun",
+      "ascendingNode": 0.86568330898918744,
+      "argumentOfPeriapsis": 5.0003683069637539
+    },
+    "name": "Mars",
+    "mass": 6.4171000000000003e+23
+  },
+  {
+    "radius": 7941.8500000000004,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 23463200,
+      "eccentricity": 0.00033,
+      "inclination": 0.016231562043547264,
+      "primaryID": "Mars",
+      "ascendingNode": 0,
+      "argumentOfPeriapsis": 0.1165879940332212
+    },
+    "name": "Deimos",
+    "mass": 1476200000000000
+  },
+  {
+    "radius": 13003.767400000001,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 9376000,
+      "eccentricity": 0.015100000000000001,
+      "inclination": 0.01907644872429802,
+      "primaryID": "Mars",
+      "ascendingNode": 0,
+      "argumentOfPeriapsis": 0.1165879940332212
+    },
+    "name": "Phobos",
+    "mass": 10659000000000000
+  },
+  {
+    "radius": 2439700,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 579100000000,
+      "eccentricity": 0.2056,
+      "inclination": 0.058992128717408339,
+      "primaryID": "Sun",
+      "ascendingNode": 0.84353508078137951,
+      "argumentOfPeriapsis": 0.50830969135082849
+    },
+    "name": "Mercury",
+    "mass": 3.3011000000000001e+23
+  },
+  {
+    "radius": 6051800,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 1082100000000,
+      "eccentricity": 0.0067000000000000002,
+      "inclination": 0.06736970912698112,
+      "primaryID": "Sun",
+      "ascendingNode": 1.3383184704292521,
+      "argumentOfPeriapsis": 0.95790650666456778
+    },
+    "name": "Venus",
+    "mass": 4.8675000000000003e+24
+  },
+  {
+    "radius": 6051800,
+    "id": "2",
+    "textures": {
+      "diffuse": "",
+      "normal": "",
+      "specular": ""
+    },
+    "orbit": {
+      "semiMajorAxis": 7785700000000,
+      "eccentricity": 0.048899999999999999,
+      "inclination": 0.10629055144645466,
+      "primaryID": "Sun",
+      "ascendingNode": 1.7534275797235832,
+      "argumentOfPeriapsis": 4.7798808625593106
+    },
+    "name": "Jupiter",
+    "mass": 1.8981900000000001e+27
+  }
+]

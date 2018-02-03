@@ -1,0 +1,16 @@
+[submodule "CMake/SwiftCMake"]
+	path = CMake/SwiftCMake
+	url = https://github.com/Rogiel/SwiftCMake.git
+
+[submodule "Vendor/SGLOpenGL"]
+	path = Vendor/SGLOpenGL
+	url = https://github.com/SwiftGL/OpenGL.git
+[submodule "Vendor/CGLFW3"]
+	path = Vendor/CGLFW3
+	url = https://github.com/SwiftGL/CGLFW3.git
+[submodule "Vendor/SGLImage"]
+	path = Vendor/SGLImage
+	url = https://github.com/SwiftGL/Image.git
+[submodule "Vendor/SGLMath"]
+	path = Vendor/SGLMath
+	url = https://github.com/SwiftGL/Math.git
