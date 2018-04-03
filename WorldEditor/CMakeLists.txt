@@ -5,8 +5,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 # Find the QtWidgets library
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Widgets QUIET)
 
+if(Qt5Widgets_FOUND)
 set(RESOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 set(GAME_RESOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../Game/Resources)
 
@@ -99,4 +100,4 @@ if (APPLE)
             MACOSX_BUNDLE YES
     )
 endif ()
-
+endif()

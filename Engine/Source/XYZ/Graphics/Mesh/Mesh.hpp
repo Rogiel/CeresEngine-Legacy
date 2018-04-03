@@ -130,6 +130,13 @@ namespace XYZ::Graphics::Mesh {
 		 */
 		std::array<Vertex, 3> getTriangle(unsigned int index) const;
 
+		/**
+		 * The mesh bounding box
+		 *
+		 * @return the mesh bounding box
+		 */
+		std::array<glm::vec3, 4> getBoundingBox() const;
+
 	public:
 		/**
 		 * @return a reference to a compiled mesh

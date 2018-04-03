@@ -3,6 +3,7 @@
 //
 
 #include "OpenGLCubeMap.hpp"
+#include "OpenGLException.hpp"
 
 namespace XYZ::Graphics::Renderer::OpenGL {
 
@@ -29,8 +30,9 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		glGenTextures(1, &textureID);
 		wrap(textureID, [=]() {
 			for(unsigned int i = 0; i < 6; ++i) {
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, (GLuint) width, (GLuint) height, 0,
-							 format, type, nullptr);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat,
+									   (GLuint) width, (GLuint) height, 0,
+									   format, type, nullptr);
 			}
 
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -68,8 +70,9 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	void OpenGLCubeMap::resize(size_t width, size_t height) {
 		wrap(textureID, [=]() {
 			for(unsigned int i = 0; i < 6; ++i) {
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, (GLuint) width, (GLuint) height, 0,
-							 format, type, nullptr);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat,
+									   (GLuint) width, (GLuint) height, 0,
+									   format, type, nullptr);
 			}
 		});
 	}
@@ -205,7 +208,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		GLenum filter;
 
 		wrap(textureID, [&]() {
-			glGetTextureParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, (GLint*) &filter);
+			glGetTextureParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER,
+								   (GLint*) &filter);
 		});
 
 		for(auto& map : TextureMagnitificationMapping) {
@@ -243,7 +247,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		GLenum filter;
 
 		wrap(textureID, [&]() {
-			glGetTextureParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, (GLint*) &filter);
+			glGetTextureParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER,
+								   (GLint*) &filter);
 		});
 
 		for(auto& map : TextureMinificationMapping) {

@@ -16,6 +16,8 @@
 #include "XYZ/Scene/Light/PointLight.hpp"
 #include "XYZ/Scene/Light/SpotLight.hpp"
 
+#include <map>
+
 namespace XYZ::Graphics::Renderer::OpenGL {
 
 	class OpenGLDeferredRendering {
@@ -90,12 +92,17 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		OpenGLShaderProgram pointLightShader;
 
 		/**
+		 * The point light shader program
+		 */
+		std::map<unsigned int, OpenGLShaderProgram> pointLightShaders;
+
+		/**
 		 * The spot light shader program
 		 */
 		OpenGLShaderProgram spotLightShader;
 
 	private:
-		bool bloom = true;
+		bool bloom = false;
 
 		/**
 		 * A framebuffer used to render the horizontal Gaussian blur
@@ -133,7 +140,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		/**
 		 * A flag indicating if the HDR pass is enabled
 		 */
-		bool hdr = false;
+		bool hdr = true;
 
 		/**
 		 * The scene exposure
@@ -234,7 +241,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		 * @param object the object to be rendered to the gbuffer
 		 * @param parentModelMatrix the model matrix of the objects parent
 		 */
-		void renderGeometryBufferObject(Scene::Object& object, const glm::mat4& parentModelMatrix);
+		void renderGeometryBufferObject(Scene::Object& object, const glm::mat4& parentModelMatrix, const glm::mat4& VP);
 
 		glm::mat4 renderShadowMap(Scene::Scene& scene,Scene::Light::DirectionalLight& light);
 		float renderShadowMap(Scene::Scene& scene,Scene::Light::PointLight& light);

@@ -3,6 +3,7 @@
 //
 
 #include "OpenGLGeometryBuffer.hpp"
+#include "OpenGLException.hpp"
 
 namespace XYZ::Graphics::Renderer::OpenGL {
 
@@ -11,34 +12,37 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 			positionDepth(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT),
 			normalShininess(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT),
 			albedoSpecular(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT),
-			width(width), height(height)
-	{
+			width(width), height(height) {
 		framebuffer.activate();
 
 		// position + depth color buffer
 		positionDepth.setMagnificationMinificationFilter(Texture::TextureMagnification::NEAREST,
 														 Texture::TextureMinification::NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, positionDepth.textureID, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+							   positionDepth.textureID, 0);
 
 		// normal + shininess color buffer
 		normalShininess.setMagnificationMinificationFilter(Texture::TextureMagnification::NEAREST,
-														 Texture::TextureMinification::NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalShininess.textureID, 0);
+														   Texture::TextureMinification::NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+							   normalShininess.textureID, 0);
 
 		// color + specular color buffer
 		albedoSpecular.setMagnificationMinificationFilter(Texture::TextureMagnification::NEAREST,
-														   Texture::TextureMinification::NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedoSpecular.textureID, 0);
+														  Texture::TextureMinification::NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
+							   albedoSpecular.textureID, 0);
 
 		// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
-		unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+		unsigned int attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
 		glDrawBuffers(3, attachments);
 
 		// create and attach depth buffer (renderbuffer)
 		glGenRenderbuffers(1, &rboDepth);
 		glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
+							   rboDepth);
 
 		// finally check if framebuffer is complete
 		framebuffer.deactivate();

@@ -8,8 +8,8 @@
 
 namespace XYZ::Graphics::Texture {
 
-	TextureImage::TextureImage(uint32_t width, uint32_t height, const std::vector<char>& raw, bool alpha) :
-			width(width), height(height), raw(raw), alpha(alpha) {}
+	TextureImage::TextureImage(uint32_t width, uint32_t height, std::vector<char> raw, bool alpha) :
+			width(width), height(height), raw(std::move(raw)), alpha(alpha) {}
 
 
 	uint32_t TextureImage::getWidth() const {

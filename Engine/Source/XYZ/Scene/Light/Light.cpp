@@ -54,18 +54,26 @@ namespace XYZ::Scene::Light {
 		return getLightType() == LightType::SPOT;
 	}
 
-	const std::shared_ptr<Renderer::Framebuffer>& Light::getShadowMapFramebuffer() const {
-		return shadowMapFramebuffer;
+	float Light::getShadowOcclusionStrength() const {
+		return shadowOcclusionStrength;
 	}
 
-	void Light::setShadowMapFramebuffer(const std::shared_ptr<Renderer::Framebuffer>& shadowMapFramebuffer) {
-		Light::shadowMapFramebuffer = shadowMapFramebuffer;
+	void Light::setShadowOcclusionStrength(float shadowOcclusionStrength) {
+		Light::shadowOcclusionStrength = shadowOcclusionStrength;
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------
 
 	float Light::getInfluenceRadius() const {
 		return 0;
+	}
+
+	bool Light::hasShadows() const {
+		return shadows;
+	}
+
+	void Light::setShadows(bool shadows) {
+		Light::shadows = shadows;
 	}
 
 }

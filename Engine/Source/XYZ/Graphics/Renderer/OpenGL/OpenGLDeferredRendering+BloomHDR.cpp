@@ -3,6 +3,7 @@
 //
 
 #include "OpenGLDeferredRendering.hpp"
+#include "OpenGLException.hpp"
 
 #include <iostream>
 

@@ -18,6 +18,7 @@
 #include <XYZ/Graphics/Texture/Stbi/StbiTextureImageLoader.hpp>
 
 #include <XYZ/Graphics/Renderer/OpenGL/OpenGLDeferredRendering.hpp>
+#include <XYZ/Graphics/Model/StaticModel.hpp>
 #include <XYZ/Audio/OpenAL/OpenALAudioSystem.hpp>
 
 #include <XYZ/Audio/Loader/OggVorbis/OggVorbisClipLoader.hpp>
@@ -38,30 +39,34 @@ namespace XYZ::WorldEditor::UI {
 	std::shared_ptr<Scene::Object> loadObject(const std::string& name, Engine& engine,
 											  const std::shared_ptr<Scene::Object>& parent) {
 		auto object = parent->createChild();
-		object->setMesh(engine.getMeshManager().get("Objects/" + name + "/" + name + ".obj"));
+		auto model = std::make_shared<Graphics::Model::StaticModel>(
+				engine.getMeshManager().get("Objects/" + name + "/" + name + ".obj")
+		);
+		object->setModel(model);
 
-		object->setDiffuse(engine.getRenderer().getTextureCompiler().compileTexture(
+		model->setDiffuseTexture(engine.getRenderer().getTextureCompiler().compileTexture(
 				*engine.getTextureImageManager().get("Objects/" + name + "/" + name + "_diffuse.png")
 		));
-		object->getDiffuse()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
-																 Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
-		object->getDiffuse()->generateMipmaps();
+		model->getDiffuseTexture()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
+																	   Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
+		model->getDiffuseTexture()->generateMipmaps();
 
-		object->setSpecular(engine.getRenderer().getTextureCompiler().compileTexture(
+		model->setSpecularTexture(engine.getRenderer().getTextureCompiler().compileTexture(
 				*engine.getTextureImageManager().get("Objects/" + name + "/" + name + "_specular.png")
 		));
-		object->getSpecular()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
-																  Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
-		object->getSpecular()->generateMipmaps();
+		model->getSpecularTexture()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
+																		Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
+		model->getSpecularTexture()->generateMipmaps();
 
-		object->setNormalMap(engine.getRenderer().getTextureCompiler().compileTexture(
+		model->setNormalMap(engine.getRenderer().getTextureCompiler().compileTexture(
 				*engine.getTextureImageManager().get("Objects/" + name + "/" + name + "_normal.png")
 		));
-		object->getNormalMap()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
-																   Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
-		object->getNormalMap()->generateMipmaps();
+		model->getNormalMap()->setMagnificationMinificationFilter(Graphics::Texture::TextureMagnification::LINEAR,
+																  Graphics::Texture::TextureMinification::NEAREST_MIPMAP_LINEAR);
+		model->getNormalMap()->generateMipmaps();
 
-		object->setShininess(32.0f);
+		model->setShininess(32.0f);
+		model->setCastShadows(true);
 
 		return object;
 	}
@@ -101,10 +106,9 @@ namespace XYZ::WorldEditor::UI {
 		for(int i = 0; i < 2; i++) {
 			auto segment = loadObject("Floor", *engine, tunnel);
 			segment->position.x += 4.0 * i;
-//		segment->setShininess(0.001f);
 
 			auto track = loadObject("MainRail", *engine, segment);
-			track->setShininess(320.0f);
+			static_cast<Graphics::Model::StaticModel*>(track->getModel().get())->setShininess(320.0f);
 
 			auto pipes = loadObject("Pipes", *engine, segment);
 

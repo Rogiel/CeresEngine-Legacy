@@ -89,14 +89,18 @@ namespace XYZ::Graphics::Model {
 		 *
 		 * @param renderer the renderer context
 		 */
-		void render(Renderer::Renderer& renderer) final;
+		void render(Renderer::Renderer& renderer, const LevelOfDetail& levelOfDetail) final;
 
 		/**
 		 * Sets the shader uniform variables for the model material
 		 *
 		 * @param shader the shader to set uniforms to
 		 */
-		void setMaterialShaderUniforms(Shader::ShaderProgram& shader) final;
+		void setMaterialShaderUniforms(Renderer::Renderer& renderer, Shader::ShaderProgram& shader,
+									   const LevelOfDetail& levelOfDetail) final;
+
+	public:
+		virtual glm::vec3 getSize() final override;
 
 	public:
 		/**

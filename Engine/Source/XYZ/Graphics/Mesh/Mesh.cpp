@@ -10,7 +10,7 @@
 namespace XYZ::Graphics::Mesh {
 
 	Mesh::Mesh(std::vector<unsigned int> indices, std::vector<Vertex> vertices) :
-			indices(std::move(indices)), vertices(std::move(vertices)) {
+			indices(indices), vertices(vertices) {
 		assert((this->indices.size() % 3) == 0);
 	}
 

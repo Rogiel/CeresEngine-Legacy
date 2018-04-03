@@ -14,6 +14,7 @@
 #include "XYZ/Scene/Light/DirectionalLight.hpp"
 #include "XYZ/Scene/Light/PointLight.hpp"
 #include "XYZ/Scene/Light/SpotLight.hpp"
+#include "OpenGLException.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -26,12 +27,12 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	OpenGLFramebuffer::OpenGLFramebuffer() :
 			width(0), height(0) {
-		glGenFramebuffers(1, &framebufferID);
+		wrap(glGenFramebuffers, 1, &framebufferID);
 	}
 
 	OpenGLFramebuffer::OpenGLFramebuffer(unsigned int width, unsigned int height) :
 			width(width), height(height) {
-		glGenFramebuffers(1, &framebufferID);
+		wrap(glGenFramebuffers, 1, &framebufferID);
 	}
 
 	OpenGLFramebuffer::OpenGLFramebuffer(GLuint framebufferID, unsigned int width, unsigned int height,
@@ -48,7 +49,10 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	// -----------------------------------------------------------------------------------------------------------------
 
 	static void enableOrDisable(GLenum name, bool state) {
-		(state ? glEnable : glDisable)(name);
+		wrap(
+				(state ? glEnable : glDisable),
+				name
+		);
 	}
 
 	static void updateFramebufferState(OpenGLFramebuffer::Configuration& configuration) {
@@ -58,13 +62,20 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	}
 
 	void OpenGLFramebuffer::activate() {
-		glViewport(0, 0, width, height);
-		glBindFramebuffer(GL_FRAMEBUFFER, framebufferID);
+		wrap(
+				glViewport,
+				0, 0, width, height
+		);
+		wrap(
+				glBindFramebuffer,
+				GL_FRAMEBUFFER, framebufferID
+		);
+
 		updateFramebufferState(configuration);
 	}
 
 	void OpenGLFramebuffer::deactivate() {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		wrap(glBindFramebuffer, GL_FRAMEBUFFER, 0);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------
@@ -77,17 +88,17 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	void OpenGLFramebuffer::copy(Framebuffer& destinationFramebuffer) const {
 		auto& destination = static_cast<OpenGLFramebuffer&>(destinationFramebuffer);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, framebufferID);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, destination.framebufferID);
-		glBlitFramebuffer(0, 0, width, height, 0, 0, destination.width,
-						  destination.height, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		wrap(glBindFramebuffer, GL_FRAMEBUFFER, framebufferID);
+		wrap(glBindFramebuffer, GL_DRAW_FRAMEBUFFER, destination.framebufferID);
+		wrap(glBlitFramebuffer, 0, 0, width, height, 0, 0, destination.width,
+			 destination.height, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		wrap(glBindFramebuffer, GL_FRAMEBUFFER, 0);
 	}
 
 	void OpenGLFramebuffer::clear(glm::vec4 color) {
 		// Clear the framebuffer contents
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(color.r, color.g, color.b, color.a);
+		wrap(glClear, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		wrap(glClearColor, color.r, color.g, color.b, color.a);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------

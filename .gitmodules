@@ -4,3 +4,12 @@
 [submodule "Vendor/tinyobjloader"]
 	path = Vendor/tinyobjloader
 	url = https://github.com/syoyo/tinyobjloader.git
+[submodule "Vendor/nanogui"]
+	path = Vendor/nanogui
+	url = https://github.com/wjakob/nanogui.git
+[submodule "Vendor/EntityX"]
+	path = Vendor/EntityX
+	url = https://github.com/alecthomas/entityx.git
+[submodule "Vendor/libnoise"]
+	path = Vendor/libnoise
+	url = https://github.com/eXpl0it3r/libnoise.git

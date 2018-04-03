@@ -1,0 +1,6 @@
+list_current_sources_and_subdirs(SRCS DIRS)
+
+add_library(XYZ.Terrain.Manager.Quadtree STATIC ${SRCS})
+target_include_directories(XYZ.Terrain.Manager.Quadtree
+        PRIVATE $<TARGET_PROPERTY:XYZ.Engine,INTERFACE_INCLUDE_DIRECTORIES>
+)

@@ -26,7 +26,8 @@ namespace XYZ::Scene::Light {
         glm::vec3 diffuse;
         glm::vec3 specular;
 
-		std::shared_ptr<Renderer::Framebuffer> shadowMapFramebuffer;
+		bool shadows = true;
+		float shadowOcclusionStrength = 0.5;
 
 	public:
         Light();
@@ -42,8 +43,13 @@ namespace XYZ::Scene::Light {
         const glm::vec3& getSpecular() const;
         void setSpecular(const glm::vec3& specular);
 
-		const std::shared_ptr<Renderer::Framebuffer>& getShadowMapFramebuffer() const;
-		void setShadowMapFramebuffer(const std::shared_ptr<Renderer::Framebuffer>& shadowMapFramebuffer);
+		float getShadowOcclusionStrength() const;
+
+		void setShadowOcclusionStrength(float shadowOcclusionStrength);
+
+		bool hasShadows() const;
+
+		void setShadows(bool shadows);
 
 	public:
 		/**

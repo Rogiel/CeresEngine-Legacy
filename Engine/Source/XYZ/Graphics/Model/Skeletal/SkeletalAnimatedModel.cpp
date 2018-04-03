@@ -3,3 +3,8 @@
 //
 
 #include "SkeletalAnimatedModel.hpp"
+
+namespace XYZ::Graphics::Model::Skeletal {
+
+
+}

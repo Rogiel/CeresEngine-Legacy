@@ -29,7 +29,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	void OpenGLVertexBuffer::draw() {
 		// draw mesh
 		glBindVertexArray(vao);
-		glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
 	}
 

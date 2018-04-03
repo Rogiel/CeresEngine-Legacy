@@ -23,6 +23,9 @@ target_link_libraries(Game
         PRIVATE XYZ.Input.Mouse.GLFW
         
         PRIVATE XYZ.Scene.Manager.Octree
+        PUBLIC XYZ.Terrain.Noise
+        PUBLIC XYZ.Terrain.Plain
+        PUBLIC XYZ.Terrain.Manager.Quadtree
         
         PRIVATE "-framework CoreFoundation"
         PRIVATE "-framework AudioToolbox"
@@ -52,7 +55,6 @@ endforeach()
 add_custom_target(Game.Resources)
 
 find_package(Blender)
-
 if(Blender_FOUND)
     file(GLOB_RECURSE BLENDER_RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/Source/Resources/Objects/*.blend")
     foreach(blender_file ${BLENDER_RESOURCES})

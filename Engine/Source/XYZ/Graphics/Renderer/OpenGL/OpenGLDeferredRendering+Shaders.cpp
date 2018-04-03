@@ -22,13 +22,20 @@ out mat3 TBN;
 
 uniform mat4 model;
 uniform mat4 inversedTransposedModel;
-layout(std140) uniform ViewProjection {
-    mat4 projection;
-    mat4 view;
-    struct {
-        vec3 position;
-    } camera;
-};
+
+//layout(std140) uniform ViewProjection {
+//    mat4 projection;
+//    mat4 view;
+//    struct {
+//        vec3 position;
+//    } camera;
+//};
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform struct {
+	vec3 position;
+} camera;
 
 void main() {
     vec4 worldPos = model * vec4(aPos, 1.0);
@@ -77,21 +84,27 @@ struct PhongMaterial {
 };
 uniform PhongMaterial material;
 
+const float gamma = 2.2;
+
 void main() {
     // store the fragment position vector in the first gbuffer texture
     gPosition.xyz = FragPos;
     gPosition.w = 0.0;
 
     // also store the per-fragment normals into the gbuffer
-	vec3 normal = texture(material.normal, TexCoords).xyz * 2.0 - 1.0;
-	if(gl_FrontFacing == false) {
-    	normal = -normal;
+	if(material.hasNormalMap) {
+		vec3 normal = texture(material.normal, TexCoords).xyz * 2.0 - 1.0;
+		if(gl_FrontFacing == false) {
+			normal = -normal;
+		}
+		gNormal.rgb = normalize(Normal + TBN * normal);
+	} else {
+		gNormal.rgb = Normal;
 	}
-    gNormal.rgb = normalize(TBN * normal);
     gNormal.a = material.shininess;
 
     // and the diffuse per-fragment color
-    gAlbedoSpec.rgb = texture(material.diffuse, TexCoords).rgb + material.diffuseColor;
+    gAlbedoSpec.rgb = pow(texture(material.diffuse, TexCoords).rgb, vec3(gamma)) + material.diffuseColor;
 
     // store specular intensity in gAlbedoSpec's alpha component
     gAlbedoSpec.a = texture(material.specular, TexCoords).r + material.specularColor.r;
@@ -124,21 +137,31 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 
-layout(std140) uniform ViewProjection {
-    mat4 projection;
-    mat4 view;
-    struct {
-        vec3 position;
-    } camera;
-};
+//layout(std140) uniform ViewProjection {
+//    mat4 projection;
+//    mat4 view;
+//    struct {
+//        vec3 position;
+//    } camera;
+//};
 
-uniform struct DirectionalLight {
+uniform mat4 projection;
+uniform mat4 view;
+uniform struct {
+	vec3 position;
+} camera;
+
+struct DirectionalLight {
 	vec3 direction;
 
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
-} light;
+
+	float shadowOcclusionStrength;
+};
+
+uniform DirectionalLight light;
 
 // function prototypes
 mat3 CalcDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir, float shininess);
@@ -191,18 +214,26 @@ in vec2 TexCoords;
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
-uniform samplerCube shadowMap;
 uniform float farPlane;
 
-layout(std140) uniform ViewProjection {
-    mat4 projection;
-    mat4 view;
-    struct {
-        vec3 position;
-    } camera;
-};
+uniform bool hasShadowMap;
+uniform samplerCube shadowMap;
 
-uniform struct PointLight {
+//layout(std140) uniform ViewProjection {
+//    mat4 projection;
+//    mat4 view;
+//    struct {
+//        vec3 position;
+//    } camera;
+//};
+
+uniform mat4 projection;
+uniform mat4 view;
+uniform struct {
+	vec3 position;
+} camera;
+
+struct PointLight {
     vec3 position;
 
     float constant;
@@ -212,11 +243,15 @@ uniform struct PointLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-} light;
+
+	float shadowOcclusionStrength;
+};
+
+uniform PointLight light[LIGHT_COUNT];
 
 // function prototypes
 mat3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shininess);
-float ShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 viewPos);
+float ShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 viewPos, float shadowOcclusionStrength);
 
 void main() {
     // retrieve data from gbuffer
@@ -228,16 +263,17 @@ void main() {
     float Specular = texture(gAlbedoSpec, TexCoords).a;
 
     vec3 viewDir = normalize(camera.position - FragPos);
-    mat3 result = CalcPointLight(light, Normal, FragPos, viewDir, Shininess);
+	mat3 result = mat3(0.0);
+
+	for(int i = 0; i<LIGHT_COUNT; i++) {
+    	result += CalcPointLight(light[i], Normal, FragPos, viewDir, Shininess);
+	}
 
     vec3 materialDiffuse = Diffuse;
-    vec3 materialSpecular = vec3(Specular);
+    vec3 materialSpecular = materialDiffuse * vec3(Specular);
     vec3 color = (result[0] + result[1]) * materialDiffuse + result[2] * materialSpecular;
 
     FragColor = vec4(color, 1.0);
-
-//	float shadow = ShadowCalculation(FragPos, light.position);
-//	FragColor = vec4(shadow, shadow, shadow, 1.0);
 }
 
 // calculates the color when using a point light.
@@ -256,9 +292,11 @@ mat3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, f
     float distance = length(lightPos - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * pow(distance, 2));
 
-//	// compute the shadow visibility factor
-	float visibility = ShadowCalculation(fragPos, lightPos, camera.position);
-//	const float visibility = 1.0;
+	// compute the shadow visibility factor
+	float visibility = 1.0;
+	if(hasShadowMap) {
+		visibility = ShadowCalculation(fragPos, lightPos, camera.position, light.shadowOcclusionStrength);
+	}
 
     // combine results
     return mat3(
@@ -276,7 +314,7 @@ vec3 sampleOffsetDirections[20] = vec3[](
    vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 );
 
-float ShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 viewPos) {
+float ShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 viewPos, float shadowOcclusionStrength) {
     // get vector between fragment position and light position
     vec3 fragToLight = fragPos - lightPos;
 
@@ -291,7 +329,7 @@ float ShadowCalculation(vec3 fragPos, vec3 lightPos, vec3 viewPos) {
 
     // test for shadows
 	const float bias = 0.005 * 2;
-    float shadow = currentDepth - bias > closestDepth ? 0.5 : 1.0;
+    float shadow = currentDepth - bias > closestDepth ? (1.0 - shadowOcclusionStrength) : 1.0;
 
 //	float shadow = 0.0;
 //	const float bias   = 0.15;
@@ -322,15 +360,21 @@ uniform sampler2D shadowMap;
 
 uniform mat4 lightSpaceMatrix;
 
-layout(std140) uniform ViewProjection {
-    mat4 projection;
-    mat4 view;
-    struct {
-        vec3 position;
-    } camera;
-};
+//layout(std140) uniform ViewProjection {
+//    mat4 projection;
+//    mat4 view;
+//    struct {
+//        vec3 position;
+//    } camera;
+//};
 
-uniform struct SpotLight {
+uniform mat4 projection;
+uniform mat4 view;
+uniform struct {
+	vec3 position;
+} camera;
+
+struct SpotLight {
 	vec3 position;
 	vec3 direction;
 	float cutOff;
@@ -343,11 +387,15 @@ uniform struct SpotLight {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
-} light;
+
+	float shadowOcclusionStrength;
+};
+
+uniform SpotLight light;
 
 // function prototypes
 mat3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shininess);
-float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir);
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, float shadowOcclusionStrength);
 
 void main() {
     // retrieve data from gbuffer
@@ -389,7 +437,7 @@ mat3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, flo
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
 	// shadows
-	float visibility = ShadowCalculation(lightSpaceMatrix * vec4(fragPos, 1.0), normal, lightDir);
+	float visibility = ShadowCalculation(lightSpaceMatrix * vec4(fragPos, 1.0), normal, lightDir, light.shadowOcclusionStrength);
 
     // combine results
     return mat3(
@@ -399,7 +447,7 @@ mat3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, flo
     );
 }
 
-float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, float shadowOcclusionStrength) {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
@@ -417,8 +465,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     float currentDepth = projCoords.z;
 
 	// compute the bias factor based on the fragment distance from the light
-//	float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.0005);
-	const float bias = 0.0;
+	float bias = max(0.0005 * (1.0 - dot(normal, lightDir)), 0.00005);
+//	const float bias = 0.0;
 
 	// apply a PCSS technique to get a bit better shadows
 	const int smoothing = 2;
@@ -427,7 +475,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
 	for(int x = -smoothing; x <= smoothing; ++x) {
 		for(int y = -smoothing; y <= smoothing; ++y) {
 			float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-			shadow += currentDepth - bias > pcfDepth ? 0.5 : 1.0;
+			shadow += currentDepth - bias > pcfDepth ? (1.0 - shadowOcclusionStrength) : 1.0;
 		}
 	}
 	shadow /= pow(2.0 * float(smoothing) + 1.0, 2);
@@ -563,21 +611,36 @@ uniform bool horizontal;
 
 const float weight[5] = float[] (0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162);
 
+vec4 blur13(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {
+  vec4 color = vec4(0.0);
+  vec2 off1 = vec2(1.411764705882353) * direction;
+  vec2 off2 = vec2(3.2941176470588234) * direction;
+  vec2 off3 = vec2(5.176470588235294) * direction;
+  color += texture(image, uv) * 0.1964825501511404;
+  color += texture(image, uv + (off1 / resolution)) * 0.2969069646728344;
+  color += texture(image, uv - (off1 / resolution)) * 0.2969069646728344;
+  color += texture(image, uv + (off2 / resolution)) * 0.09447039785044732;
+  color += texture(image, uv - (off2 / resolution)) * 0.09447039785044732;
+  color += texture(image, uv + (off3 / resolution)) * 0.010381362401148057;
+  color += texture(image, uv - (off3 / resolution)) * 0.010381362401148057;
+  return color;
+}
+
 void main() {
-     vec2 tex_offset = 1.0 / textureSize(scene, 0); // gets size of single texel
-     vec3 result = texture(scene, TexCoords).rgb * weight[0];
+     vec2 tex_offset = textureSize(scene, 0); // gets size of single texel
      if(horizontal) {
-         for(int i = 1; i < 5; ++i) {
-            result += texture(scene, TexCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
-            result += texture(scene, TexCoords - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
-         }
+		FragColor = blur13(scene, TexCoords, tex_offset, vec2(1.0, 0.0));
+//         for(int i = 1; i < 5; ++i) {
+//            result += texture(scene, TexCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+//            result += texture(scene, TexCoords - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+//         }
      } else {
-         for(int i = 1; i < 5; ++i) {
-             result += texture(scene, TexCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-             result += texture(scene, TexCoords - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-         }
+		FragColor = blur13(scene, TexCoords, tex_offset, vec2(0.0, 1.0));
+//         for(int i = 1; i < 5; ++i) {
+//             result += texture(scene, TexCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+//             result += texture(scene, TexCoords - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+//         }
      }
-     FragColor = vec4(result, 1.0);
 }
 )";
 

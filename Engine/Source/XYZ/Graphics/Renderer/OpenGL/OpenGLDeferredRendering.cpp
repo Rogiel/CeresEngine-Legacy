@@ -11,6 +11,8 @@
 #include "OpenGLVertexBuffer.hpp"
 #include "OpenGLShaderBuffers.hpp"
 
+#include "OpenGLException.hpp"
+
 #include <glm/ext.hpp>
 
 #include <iostream>
@@ -29,8 +31,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 					OpenGLFragmentShader(GeometryFragmentShaderSource)
 			),
 
-			shadowMap(2048, 2048, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT),
-			shadowMapFBO(2048, 2048),
+			shadowMap(1024, 1024, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT),
+			shadowMapFBO(1024, 1024),
 			shadowMapShader(
 					OpenGLVertexShader(DirectionalLightShadowMapVertexShaderSource),
 					OpenGLFragmentShader(DirectionalLightShadowMapFragmentShaderSource)
@@ -51,10 +53,10 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 					OpenGLVertexShader(LightingVertexShaderSource),
 					OpenGLFragmentShader(DirectionalLightFragmentShaderSource)
 			),
-			pointLightShader(
-					OpenGLVertexShader(LightingVertexShaderSource),
-					OpenGLFragmentShader(PointLightFragmentShaderSource)
-			),
+//			pointLightShader(
+//					OpenGLVertexShader(LightingVertexShaderSource),
+//					OpenGLFragmentShader(PointLightFragmentShaderSource)
+//			),
 			spotLightShader(
 					OpenGLVertexShader(LightingVertexShaderSource),
 					OpenGLFragmentShader(SpotLightFragmentShaderSource)
@@ -81,7 +83,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 			) {
 		viewProjection.init();
 
-		geometryBufferShader.set("ViewProjection", VIEW_PROJECT_UNIFORM_BUFFER_INDEX, viewProjection);
+//		geometryBufferShader.set("ViewProjection", VIEW_PROJECT_UNIFORM_BUFFER_INDEX, viewProjection);
 
 		// -------------------------------------------------------------------------------------------------------------
 
@@ -89,7 +91,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		shadowMap.setBorderColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 
 		shadowMapFBO.activate();
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap.textureID, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+							   shadowMap.textureID, 0);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
 		shadowMapFBO.deactivate();
@@ -107,17 +110,18 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 //		glReadBuffer(GL_NONE);
 		shadowCubeMapFBO.deactivate();
 
-		// -----------------------------------------------------------------------------------------------------------------
+		// -------------------------------------------------------------------------------------------------------------
 
 		lightingTexture.setWrapMode(Texture::TextureWrap::CLAMP_TO_EDGE, Texture::TextureWrap::CLAMP_TO_EDGE);
 
 		lightingFramebuffer.activate();
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lightingTexture.textureID, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+							   lightingTexture.textureID, 0);
 		lightingFramebuffer.deactivate();
 
 		// -------------------------------------------------------------------------------------------------------------
 
-		directionalLightShader.set("ViewProjection", VIEW_PROJECT_UNIFORM_BUFFER_INDEX, viewProjection);
+//		directionalLightShader.set("ViewProjection", VIEW_PROJECT_UNIFORM_BUFFER_INDEX, viewProjection);
 
 		directionalLightShader.activate();
 		directionalLightShader.set("gPosition", 0);
@@ -127,17 +131,17 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 		// -------------------------------------------------------------------------------------------------------------
 
-		pointLightShader.set("ViewProjection", VIEW_PROJECT_UNIFORM_BUFFER_INDEX, viewProjection);
+//		pointLightShader.set("ViewProjection", VIEW_PROJECT_UNIFORM_BUFFER_INDEX, viewProjection);
 
-		pointLightShader.activate();
-		pointLightShader.set("gPosition", 0);
-		pointLightShader.set("gNormal", 1);
-		pointLightShader.set("gAlbedoSpec", 2);
-		pointLightShader.set("shadowMap", 3);
+//		pointLightShader.activate();
+//		pointLightShader.set("gPosition", 0);
+//		pointLightShader.set("gNormal", 1);
+//		pointLightShader.set("gAlbedoSpec", 2);
+//		pointLightShader.set("shadowMap", 3);
 
 		// -------------------------------------------------------------------------------------------------------------
 
-		spotLightShader.set("ViewProjection", VIEW_PROJECT_UNIFORM_BUFFER_INDEX, viewProjection);
+//		spotLightShader.set("ViewProjection", VIEW_PROJECT_UNIFORM_BUFFER_INDEX, viewProjection);
 
 		spotLightShader.activate();
 		spotLightShader.set("gPosition", 0);
@@ -149,9 +153,9 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 		bloomHorizontalBlurFramebuffer.activate();
 		bloomHorizontalBlurTexture.setMagnificationMinificationFilter(Texture::TextureMagnification::LINEAR,
-																	Texture::TextureMinification::LINEAR);
+																	  Texture::TextureMinification::LINEAR);
 		bloomHorizontalBlurTexture.setWrapMode(Texture::TextureWrap::CLAMP_TO_EDGE,
-											 Texture::TextureWrap::CLAMP_TO_EDGE);
+											   Texture::TextureWrap::CLAMP_TO_EDGE);
 		glFramebufferTexture2D(
 				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomHorizontalBlurTexture.textureID, 0
 		);
@@ -160,14 +164,14 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 		bloomVerticalBlurFramebuffer.activate();
 		bloomVerticalBlurTexture.setMagnificationMinificationFilter(Texture::TextureMagnification::LINEAR,
-																  Texture::TextureMinification::LINEAR);
+																	Texture::TextureMinification::LINEAR);
 		bloomVerticalBlurTexture.setWrapMode(Texture::TextureWrap::CLAMP_TO_EDGE,
-										   Texture::TextureWrap::CLAMP_TO_EDGE);
+											 Texture::TextureWrap::CLAMP_TO_EDGE);
 		glFramebufferTexture2D(
 				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomVerticalBlurTexture.textureID, 0
 		);
 
-		// -----------------------------------------------------------------------------------------------------------------
+		// -------------------------------------------------------------------------------------------------------------
 
 		hdrShaderProgram.activate();
 		hdrShaderProgram.set("scene", 0);
@@ -209,6 +213,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		geometryBuffer.framebuffer.faceCulling(false);
 
 		geometryBuffer.framebuffer.clear();
+//		glClear(GL_DEPTH_BUFFER_BIT);
 
 		geometryBufferShader.activate();
 
@@ -224,10 +229,16 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 //		viewProjection->projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, near_plane, far_plane);
 
 		viewProjection->view = glm::lookAt(positionWithZoom, positionWithZoom + camera->getFront(), camera->getUp());
-		viewProjection.update();
+//		viewProjection.update();
+
+		geometryBufferShader.set("projection", viewProjection->projection);
+		geometryBufferShader.set("view", viewProjection->view);
+		geometryBufferShader.set("camera.position", viewProjection->camera.position);
+
+		auto VP = viewProjection->projection * viewProjection->view;
 
 		// render the root object
-		renderGeometryBufferObject(*scene.getRootObject(), glm::mat4(1.0));
+		renderGeometryBufferObject(*scene.getRootObject(), glm::mat4(1.0), VP);
 
 		geometryBufferShader.deactivate();
 		geometryBuffer.deactivate();
@@ -277,6 +288,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		}
 		glBindVertexArray(quadVAO);
 
+		unsigned int pointLightsCount = 0;
+
 		std::vector<std::shared_ptr<Scene::Light::Light>> sortedLights = scene.getLights();
 		for(std::shared_ptr<Scene::Light::Light> genericLight : sortedLights) {
 			switch(genericLight->getLightType()) {
@@ -289,39 +302,68 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 					directionalLightShader.set("light.ambient", light->getAmbient());
 					directionalLightShader.set("light.diffuse", light->getDiffuse());
 					directionalLightShader.set("light.specular", light->getSpecular());
+					directionalLightShader.set("light.shadowOcclusionStrength", light->getShadowOcclusionStrength());
+
+					directionalLightShader.set("projection", viewProjection->projection);
+					directionalLightShader.set("view", viewProjection->view);
+					directionalLightShader.set("camera.position", viewProjection->camera.position);
 
 					break;
 				}
 
 				case Scene::Light::LightType::POINT: {
-					auto light = std::static_pointer_cast<Scene::Light::PointLight>(genericLight);
-
-					// render shadow map
-					float farPlane = renderShadowMap(scene, *light);
-
-					pointLightShader.activate();
-
-					pointLightShader.set("light.position", light->getPosition());
-					pointLightShader.set("light.ambient", light->getAmbient());
-					pointLightShader.set("light.diffuse", light->getDiffuse());
-					pointLightShader.set("light.specular", light->getSpecular());
-
-					pointLightShader.set("light.constant", light->getConstant());
-					pointLightShader.set("light.linear", light->getLinear());
-					pointLightShader.set("light.quadratic", light->getQuadratic());
-
-					pointLightShader.set("farPlane", farPlane);
-
-					shadowCubeMap.activate(3);
-
+					pointLightsCount++;
 					break;
 				}
+//					auto light = std::static_pointer_cast<Scene::Light::PointLight>(genericLight);
+//
+//					auto distance = glm::length(scene.getCamera()->getPosition() - light->getPosition());
+//
+//					// render shadow map
+//					float farPlane = 1000.0;
+//					bool hasShadowMap = false;
+//
+//					if(light->hasShadows() && distance < 3.0) {
+//						farPlane = renderShadowMap(scene, *light);
+//						hasShadowMap = true;
+//					}
+//
+//					pointLightShader.activate();
+//
+//					pointLightShader.set("light.position", light->getPosition());
+//					pointLightShader.set("light.ambient", light->getAmbient());
+//					pointLightShader.set("light.diffuse", light->getDiffuse());
+//					pointLightShader.set("light.specular", light->getSpecular());
+//
+//					pointLightShader.set("light.constant", light->getConstant());
+//					pointLightShader.set("light.linear", light->getLinear());
+//					pointLightShader.set("light.quadratic", light->getQuadratic());
+//
+//					pointLightShader.set("light.shadowOcclusionStrength", light->getShadowOcclusionStrength());
+//
+//					pointLightShader.set("farPlane", farPlane);
+//					pointLightShader.set("hasShadowMap", hasShadowMap);
+//
+//					pointLightShader.set("projection", viewProjection->projection);
+//					pointLightShader.set("view", viewProjection->view);
+//					pointLightShader.set("camera.position", viewProjection->camera.position);
+//
+//					shadowCubeMap.activate(3);
+//
+//					break;
+//				}
 
 				case Scene::Light::LightType::SPOT: {
 					auto light = std::static_pointer_cast<Scene::Light::SpotLight>(genericLight);
 
 					// render shadow map
-					glm::mat4 lightSpaceMatrix = renderShadowMap(scene, *light);
+					glm::mat4 lightSpaceMatrix;
+					bool hasShadowMap = true;
+
+					if(light->hasShadows()) {
+						lightSpaceMatrix = renderShadowMap(scene, *light);
+						hasShadowMap = true;
+					}
 
 					spotLightShader.activate();
 
@@ -338,27 +380,118 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 					spotLightShader.set("light.linear", light->getLinear());
 					spotLightShader.set("light.quadratic", light->getQuadratic());
 
+					spotLightShader.set("light.shadowOcclusionStrength", light->getShadowOcclusionStrength());
 					spotLightShader.set("lightSpaceMatrix", lightSpaceMatrix);
+					spotLightShader.set("hasShadowMap", hasShadowMap);
+
+					spotLightShader.set("projection", viewProjection->projection);
+					spotLightShader.set("view", viewProjection->view);
+					spotLightShader.set("camera.position", viewProjection->camera.position);
 
 					shadowMap.activate(3);
+
+					framebuffer.activate();
+					throwOpenGLException();
+
+					framebuffer.blending(true)
+							.depthTest(false)
+							.faceCulling(false);
+					glBlendFunc(GL_ONE, GL_ONE);
+
+					geometryBuffer.positionDepth.activate(0);
+					geometryBuffer.normalShininess.activate(1);
+					geometryBuffer.albedoSpecular.activate(2);
+
+					glBindVertexArray(quadVAO);
+					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 					break;
 				}
 			}
-
-			framebuffer.activate();
-			framebuffer.blending(true)
-					.depthTest(false)
-					.faceCulling(false);
-			glBlendFunc(GL_ONE, GL_ONE);
-
-			geometryBuffer.positionDepth.activate(0);
-			geometryBuffer.normalShininess.activate(1);
-			geometryBuffer.albedoSpecular.activate(2);
-
-			glBindVertexArray(quadVAO);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
+		framebuffer.deactivate();
+
+		if(pointLightsCount == 0) {
+			return;
+		}
+
+		auto found = pointLightShaders.find(pointLightsCount);
+		if(found == pointLightShaders.end()) {
+			auto originalSource = PointLightFragmentShaderSource.getSource();
+			auto version = originalSource.substr(0, originalSource.find("\n", originalSource.find("#version")));
+			auto cutSource = originalSource.substr(originalSource.find("\n", originalSource.find("#version")));
+
+			auto source = Shader::ShaderSource(version +
+											   "#define LIGHT_COUNT " + std::to_string(pointLightsCount) + "\n" +
+											   cutSource);
+
+			pointLightShaders[pointLightsCount] = OpenGLShaderProgram(
+					OpenGLVertexShader(LightingVertexShaderSource),
+					OpenGLFragmentShader(source)
+			);
+		}
+
+		auto& pointLightShader = pointLightShaders[pointLightsCount];
+
+		pointLightShader.activate();
+
+		pointLightShader.set("gPosition", 0);
+		pointLightShader.set("gNormal", 1);
+		pointLightShader.set("gAlbedoSpec", 2);
+		pointLightShader.set("shadowMap", 3);
+
+		pointLightShader.set("projection", viewProjection->projection);
+		pointLightShader.set("view", viewProjection->view);
+		pointLightShader.set("camera.position", viewProjection->camera.position);
+
+		pointLightShader.set("farPlane", 1000.0f);
+		pointLightShader.set("hasShadowMap", false);
+
+		int lightIndex = 0;
+		for(std::shared_ptr<Scene::Light::Light> genericLight : sortedLights) {
+			switch(genericLight->getLightType()) {
+				case Scene::Light::LightType::POINT: {
+					if(lightIndex == 20) {
+						continue;
+					}
+
+					auto light = std::static_pointer_cast<Scene::Light::PointLight>(genericLight);
+
+					pointLightShader.set("light[" + std::to_string(lightIndex) + "].position", light->getPosition());
+					pointLightShader.set("light[" + std::to_string(lightIndex) + "].ambient", light->getAmbient());
+					pointLightShader.set("light[" + std::to_string(lightIndex) + "].diffuse", light->getDiffuse());
+					pointLightShader.set("light[" + std::to_string(lightIndex) + "].specular", light->getSpecular());
+
+					pointLightShader.set("light[" + std::to_string(lightIndex) + "].constant", light->getConstant());
+					pointLightShader.set("light[" + std::to_string(lightIndex) + "].linear", light->getLinear());
+					pointLightShader.set("light[" + std::to_string(lightIndex) + "].quadratic", light->getQuadratic());
+
+					pointLightShader.set("light[" + std::to_string(lightIndex) + "].shadowOcclusionStrength",
+										 light->getShadowOcclusionStrength());
+
+//					shadowCubeMap.activate(3);
+
+					lightIndex++;
+
+					break;
+				}
+			}
+		}
+
+		framebuffer.activate();
+//			throwOpenGLException();
+
+		framebuffer.blending(true)
+				.depthTest(false)
+				.faceCulling(false);
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		geometryBuffer.positionDepth.activate(0);
+		geometryBuffer.normalShininess.activate(1);
+		geometryBuffer.albedoSpecular.activate(2);
+
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glBindVertexArray(0);
 	}
@@ -366,7 +499,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 	// -----------------------------------------------------------------------------------------------------------------
 
 	void OpenGLDeferredRendering::renderGeometryBufferObject(Scene::Object& object,
-															 const glm::mat4& parentModelMatrix) {
+															 const glm::mat4& parentModelMatrix,
+															 const glm::mat4& VP) {
 		auto translation = object.getPosition();
 		auto rotation = object.getRotation();
 		auto scale = object.getScale();
@@ -395,8 +529,12 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		geometryBufferShader.set("inversedTransposedModel", glm::transpose(glm::inverse(modelMatrix)));
 
 		if(const auto& model = object.getModel()) {
-			model->setMaterialShaderUniforms(geometryBufferShader);
-			model->render(renderer);
+			Model::LevelOfDetail levelOfDetail{
+					glm::vec3(VP * glm::vec4(model->getSize(), 1.0))
+			};
+
+			model->setMaterialShaderUniforms(renderer, geometryBufferShader, levelOfDetail);
+			model->render(renderer, levelOfDetail);
 		}
 //
 //		if(const auto& mesh = object.getMesh()) {
@@ -415,7 +553,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 		// render all children
 		for(const auto& child : object.getChildren()) {
-			renderGeometryBufferObject(*child, modelMatrix);
+			renderGeometryBufferObject(*child, modelMatrix, VP);
 		}
 	}
 
@@ -479,7 +617,7 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 
 	glm::mat4 OpenGLDeferredRendering::renderShadowMap(Scene::Scene& scene, Scene::Light::SpotLight& light) {
 		shadowMapFBO.activate();
-		shadowMapFBO.clear();
+//		shadowMapFBO.clear();
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 lightProjection = glm::perspective<float>(glm::radians(90.0f), 1.0f, 0.1f, 1000.0f);
@@ -526,9 +664,14 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		);
 
 //		if(object.getModel()->sh) {
+
+		Model::LevelOfDetail levelOfDetail{
+				glm::vec3(0.0)
+		};
+
 		if(const auto& model = object.getModel()) {
 			shader.set("model", modelMatrix);
-			object.getModel()->render(renderer);
+			object.getModel()->render(renderer, levelOfDetail);
 		}
 
 //			if(const auto& mesh = object.getMesh()) {

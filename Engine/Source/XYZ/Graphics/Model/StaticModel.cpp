@@ -24,14 +24,15 @@ namespace XYZ::Graphics::Model {
 
 	// -----------------------------------------------------------------------------------------------------------------
 
-	void StaticModel::render(Renderer::Renderer& renderer) {
+	void StaticModel::render(Renderer::Renderer& renderer, const LevelOfDetail& levelOfDetail) {
 		if(vertexBuffer == nullptr) {
 			vertexBuffer = renderer.getMeshCompiler().compileMesh(*mesh);
 		}
 		vertexBuffer->draw();
 	}
 
-	void StaticModel::setMaterialShaderUniforms(Shader::ShaderProgram& shader) {
+	void StaticModel::setMaterialShaderUniforms(Renderer::Renderer& renderer, Shader::ShaderProgram& shader,
+												const LevelOfDetail& levelOfDetail) {
 		shader.set("material.shininess", shininess);
 		shader.set("material.diffuseColor", diffuseColor);
 		shader.set("material.specularColor", specularColor);
@@ -54,6 +55,10 @@ namespace XYZ::Graphics::Model {
 		} else {
 			shader.set("material.hasNormalMap", false);
 		}
+	}
+
+	glm::vec3 StaticModel::getSize() {
+		return glm::vec3(0.0);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------

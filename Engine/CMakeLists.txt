@@ -18,3 +18,5 @@ if(GLM_FOUND)
         add_subdirectory(${subdir})
     endforeach()
 endif()
+
+add_subdirectory(Sandbox)

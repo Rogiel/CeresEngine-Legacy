@@ -10,6 +10,7 @@
 #include "OpenGLTexture.hpp"
 #include "OpenGLFramebuffer.hpp"
 #include "OpenGLVertexBuffer.hpp"
+#include "OpenGLException.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -84,7 +85,8 @@ namespace XYZ::Graphics::Renderer::OpenGL {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		return std::make_unique<OpenGLFramebuffer>(
-				framebufferID, static_cast<unsigned int>(width), static_cast<unsigned int>(height),  std::make_shared<OpenGLTexture>(framebufferTextureID)
+				framebufferID, static_cast<unsigned int>(width), static_cast<unsigned int>(height),
+				std::make_shared<OpenGLTexture>(framebufferTextureID)
 		);
 	}
 
